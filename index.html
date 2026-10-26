@@ -136,7 +136,7 @@
   .liq-viaje .tipo{flex:none;font-size:11.5px;padding:2px 8px;border-radius:10px;background:#E6F0EE;color:#3B6B62} .liq-viaje .tipo.rep{background:#FDEBD3;color:#9A6418}
   .seccion-liq{font-size:12px;color:var(--gris);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin:16px 0 2px}
 </style>
-<script>(function(){var V='20261026142548';fetch('version.txt?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.text()}).then(function(v){v=v.trim();if(v&&v!==V){location.replace(location.pathname+'?v='+v)}}).catch(function(){})})();</script>
+<script>(function(){var V='20261026145844';fetch('version.txt?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.text()}).then(function(v){v=v.trim();if(v&&v!==V){location.replace(location.pathname+'?v='+v)}}).catch(function(){})})();</script>
 </head>
 <body>
 <header><div><h1 id="h-nombre">REGISTRO</h1><small id="h-sub">Inicia sesión</small></div><div><button class="mini hidden" id="b-cambiar">TML / Personal</button> <button class="mini hidden" id="b-miclave">Contraseñas</button> <button class="mini hidden" id="b-salir">Salir</button></div></header>
@@ -399,7 +399,8 @@
         <div class="fila2"><div><label for="x-sub">Subtotal</label><input type="number" step="0.01" id="x-sub"></div><div><label for="x-iva">IVA</label><input type="number" step="0.01" id="x-iva"></div></div>
         <div class="fila2"><div><label for="x-ret">IVA retenido</label><input type="number" step="0.01" id="x-ret"></div><div><label for="x-total">Total</label><input type="number" step="0.01" id="x-total"></div></div>
         <div id="x-solo-ingreso" class="hidden"><label for="x-cartas">Cartas porte que se pagan con esta factura</label><input id="x-cartas" placeholder="Ej. A2385, A2427">
-          <div class="nota">Esos viajes se marcan como cobrados (se reparte el subtotal) y se les pone la fecha de pago.</div>
+          <div class="nota">Marca qué se pagó de cada viaje (flete, repartos, maniobra). Solo eso se suma a lo cobrado; lo demás queda como "Falta" en la nota del viaje.</div>
+          <div id="x-partes"></div>
           <label for="x-fpago">Fecha en que nos pagaron</label><input type="date" id="x-fpago"></div>
         <div id="x-solo-gasto"><label for="x-cat">Categoría</label><select id="x-cat"></select>
           <div class="fila2"><div><label for="x-litros">Litros</label><input type="number" step="0.01" id="x-litros"></div><div><label for="x-pago">Forma de pago</label><input id="x-pago"></div></div>
@@ -1191,16 +1192,49 @@ $('x-arch').onchange = async e => {
     $('x-cat').value = FACT.categoria; $('x-litros').value = FACT.litros || ''; $('x-pago').value = FACT.pago || '';
     $('x-aviso').innerHTML = (FACT.repetida ? '<b style="color:var(--alerta)">Esta factura ya está registrada.</b> ' : '') + esc(FACT.aviso || 'Revisa los datos y guarda.') +
       (FACT.destino ? '<br><b>Se guardará en:</b> ' + esc(FACT.destino) : '');
-    $('x-form').classList.remove('hidden'); }
+    $('x-form').classList.remove('hidden'); PARTES = []; cargarPartes(); }
   catch (err) { $('e-fact').textContent = err; }
 };
+/* Partes de cada viaje que paga la factura (flete, repartos, maniobra): se marcan solas las que suman el subtotal */
+let PARTES = [];
+async function cargarPartes() {
+  const box = $('x-partes'); box.innerHTML = ''; PARTES = [];
+  if (!$('x-cartas').value.trim() || valSeg('x-tipo') !== 'ingreso') return;
+  box.textContent = 'Buscando los viajes…';
+  try { PARTES = await llamar('partesViajes', CRED, $('x-cartas').value); } catch (e) { box.textContent = e; return; }
+  const libres = []; PARTES.forEach(v => (v.partes || []).forEach(p => { if (!p.pagado) libres.push(p); }));
+  const meta = Number($('x-sub').value) || 0, txt = ($('x-concepto').value || '').toLowerCase();
+  let elegido = 0;
+  if (libres.length <= 12) for (let m = 1; m < (1 << libres.length) && !elegido; m++) { const s = libres.reduce((t, p, i) => t + (m >> i & 1 ? p.monto : 0), 0); if (Math.abs(s - meta) < 1) elegido = m; }
+  const pal = ['flete', 'reparto', 'maniobra'].filter(w => txt.indexOf(w) >= 0);
+  libres.forEach((p, i) => p.sel = elegido ? !!(elegido >> i & 1) : pal.length ? pal.some(w => p.k.indexOf(w) === 0) : true);
+  pintarPartes();
+}
+function pintarPartes() {
+  const box = $('x-partes'); box.innerHTML = '';
+  PARTES.forEach(v => { const d = document.createElement('div'); d.className = 'nota'; d.style.marginTop = '8px';
+    if (v.noEncontrada) { d.textContent = '⚠️ ' + v.carta + ': no está en la bitácora'; box.appendChild(d); return; }
+    d.innerHTML = '<b>' + esc(v.carta) + '</b> · viaje ' + esc(v.viaje) + ' · ' + esc(v.ruta);
+    v.partes.forEach(p => { const l = document.createElement('label'); l.style.display = 'block'; l.style.margin = '6px 0';
+      if (p.pagado) l.textContent = '✅ ' + p.nombre + ' ' + dinero(p.monto) + ' (ya estaba pagado)';
+      else { const c = document.createElement('input'); c.type = 'checkbox'; c.style.width = 'auto'; c.style.marginRight = '8px'; c.checked = !!p.sel;
+        c.onchange = () => { p.sel = c.checked; sumaPartes(); }; l.appendChild(c); l.appendChild(document.createTextNode(p.nombre + ' ' + dinero(p.monto))); }
+      d.appendChild(l); });
+    box.appendChild(d); });
+  const s = document.createElement('div'); s.id = 'x-suma'; s.className = 'datos'; s.style.marginTop = '8px'; box.appendChild(s); sumaPartes();
+}
+function sumaPartes() { if (!$('x-suma')) return; const s = PARTES.reduce((t, v) => t + (v.partes || []).reduce((a, p) => a + (!p.pagado && p.sel ? p.monto : 0), 0), 0), meta = Number($('x-sub').value) || 0;
+  $('x-suma').innerHTML = 'Se marcan como pagados: <b>' + dinero(s) + '</b> · subtotal de la factura ' + dinero(meta) + (Math.abs(s - meta) < 1 ? ' ✅ coincide' : ' ⚠️ no coincide, revisa las casillas'); }
+const partesElegidas = () => { const o = {}; PARTES.forEach(v => { if (v.partes) o[v.carta] = v.partes.filter(p => !p.pagado && p.sel).map(p => p.k); }); return o; };
+$('x-cartas').addEventListener('change', cargarPartes); $('x-sub').addEventListener('input', sumaPartes);
+$('x-tipo').addEventListener('cambio', () => { PARTES = []; cargarPartes(); });
 function tipoFact() { const g = valSeg('x-tipo') === 'gasto'; $('x-solo-gasto').classList.toggle('hidden', !g); $('x-solo-ingreso').classList.toggle('hidden', g); $('x-l-contra').textContent = g ? 'Emisor (quién te facturó)' : 'Cliente'; }
 $('x-tipo').addEventListener('cambio', tipoFact);
 $('b-fact').onclick = async () => {
   $('e-fact').textContent = ''; $('b-fact').disabled = true;
   try { const d = {uuid: $('x-uuid').value.trim().toUpperCase() || FACT.uuid, esIngreso: valSeg('x-tipo') === 'ingreso', fecha: $('x-fecha').value, folio: $('x-folio').value, contraparte: $('x-contra').value,
       concepto: $('x-concepto').value, subtotal: $('x-sub').value, iva: $('x-iva').value, ret: $('x-ret').value, total: $('x-total').value, categoria: $('x-cat').value,
-      litros: $('x-litros').value, pago: $('x-pago').value, operador: $('x-op').value, viaje: $('x-viaje').value, rfc: FACT.rfc || '', isrRet: FACT.isrRet || 0, origen: FACT.origen || '', cartas: $('x-cartas').value, fechaPago: $('x-fpago').value};
+      litros: $('x-litros').value, pago: $('x-pago').value, operador: $('x-op').value, viaje: $('x-viaje').value, rfc: FACT.rfc || '', isrRet: FACT.isrRet || 0, origen: FACT.origen || '', cartas: $('x-cartas').value, fechaPago: $('x-fpago').value, partes: partesElegidas()};
     const r = await llamar('guardarFactura', CRED, d, FACT_ARCH); aviso(r.mensaje); if (r.cobros && r.cobros.length) alert('Factura guardada.' + String.fromCharCode(10, 10) + 'Viajes marcados como pagados:' + String.fromCharCode(10) + r.cobros.join(String.fromCharCode(10))); $('x-form').classList.add('hidden'); $('x-arch').value = ''; }
   catch (e) { $('e-fact').textContent = e; }
   $('b-fact').disabled = false;
