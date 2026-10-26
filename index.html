@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>TML · Registro</title>
+<style>
+  :root{
+    color-scheme:light;
+    --fondo:#F7F3EA; --tarjeta:#FFFFFF; --tinta:#3B3A4A; --gris:#8C8577; --linea:#E8E1D3; --acento:#4D6BB3; --acento-c:#E6EDFA;
+    --ok:#3F7A6E; --ok-c:#E6F0EE; --alerta:#B4553A; --alerta-c:#FBEAE4; --espera:#8A6A1E; --espera-c:#F8F0DC; --boton:#3B3A4A; --boton-t:#FFFFFF;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--fondo);color:var(--tinta);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  header{background:var(--tarjeta);padding:16px;position:sticky;top:0;z-index:5;border-bottom:1px solid var(--linea);display:flex;align-items:center;justify-content:space-between;gap:10px}
+  header h1{margin:0;font-size:20px;letter-spacing:.06em} header small{color:var(--gris);display:block;font-size:12px;letter-spacing:.02em}
+  main{max-width:560px;margin:0 auto;padding:16px 16px 96px}
+  .card{background:var(--tarjeta);border:1px solid var(--linea);border-radius:14px;padding:16px;margin-bottom:12px;min-width:0}
+  h2{font-size:12px;margin:20px 2px 8px;color:var(--gris);font-weight:600;text-transform:uppercase;letter-spacing:.08em}
+  h3{margin:0 0 4px;font-size:17px}
+  .opcion{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--tarjeta);border:1px solid var(--linea);border-radius:14px;padding:14px;margin-bottom:10px;color:var(--tinta);font:inherit;cursor:pointer}
+  .opcion svg{width:26px;height:26px;flex:none;stroke:var(--acento)}
+  .opcion b{display:block;font-size:15px} .opcion span{font-size:12.5px;color:var(--gris)}
+  .opcion .flecha{margin-left:auto;width:18px;height:18px;stroke:var(--gris)}
+  svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  label{display:block;font-size:13px;color:var(--gris);margin:12px 0 4px}
+  input,select,textarea{width:100%;font:inherit;padding:12px;border:1px solid var(--linea);border-radius:10px;background:var(--tarjeta);color:var(--tinta);min-width:0}
+  textarea{min-height:60px}
+  .seg{display:flex;gap:8px} .seg button{flex:1;padding:11px;border-radius:10px;border:1px solid var(--linea);background:var(--tarjeta);font:inherit;color:var(--tinta)}
+  .seg button.on{background:var(--acento-c);border-color:var(--acento);font-weight:700}
+  .prim{width:100%;margin-top:16px;padding:14px;border:0;border-radius:12px;background:var(--boton);color:var(--boton-t);font:700 16px system-ui}
+  .prim:disabled{opacity:.5}
+  .sec{background:none;border:0;color:var(--gris);font:inherit;padding:12px;width:100%;text-decoration:underline}
+  .mini{background:none;border:1px solid var(--linea);border-radius:10px;padding:8px 12px;color:var(--tinta);font:inherit;font-size:14px}
+  .archivos{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+  .arch{display:flex;align-items:center;gap:10px;border:1px solid var(--linea);border-radius:10px;padding:6px 8px;min-width:0}
+  .arch img,.arch .ico{width:48px;height:48px;flex:none;object-fit:cover;border-radius:8px;background:var(--acento-c);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--acento)}
+  .arch span{flex:1;min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .arch button{flex:none;width:34px;height:34px;border-radius:50%;border:1px solid var(--linea);background:var(--tarjeta);color:var(--alerta);font-size:18px;line-height:1}
+  .agregar{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;border:1.5px dashed var(--acento);border-radius:12px;background:var(--acento-c);color:var(--acento);font:600 15px system-ui;margin-top:6px}
+  .item{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--linea);font-size:14px}
+  .item:last-child{border:0} .item small{color:var(--gris);display:block}
+  .aviso{position:fixed;left:16px;right:16px;bottom:18px;max-width:528px;margin:0 auto;padding:14px;border-radius:12px;background:var(--boton);color:var(--boton-t);text-align:center;display:none;z-index:9;white-space:pre-line}
+  .error{color:var(--alerta);font-size:14px;margin-top:8px}
+  .nota{font-size:12.5px;color:var(--gris);margin-top:6px}
+  .hidden{display:none!important}
+  /* Administración: pastel armonioso */
+  body.admin{--fondo:#F7F4FB;--linea:#ECE5F4;--acento:#7B6CB3;--acento-c:#EFEBFA;--boton:#7B6CB3;--boton-t:#FFFFFF;--ok:#4E9C8C;--ok-c:#E4F4F0;--alerta:#C4707A;--alerta-c:#FCEDEF;--espera:#9A7A2E;--espera-c:#FBF3DF}
+  body.admin header{background:linear-gradient(100deg,#EFEBFA 0%,#FDEEF2 55%,#E6F4F0 100%);border-bottom:1px solid var(--linea)}
+  body.admin .card{border:1px solid #EEE7F7;box-shadow:0 3px 14px rgba(123,108,179,.08)}
+  body.admin .liq-bloque{background:#FCFBFE;border-color:#ECE5F4}
+  body.admin .tabs button{background:#FFFFFF;border-color:#E6DEF2;color:#5B4F86}
+  body.admin .tabs button.on{background:var(--acento);color:#fff;border-color:var(--acento)}
+  body.admin .tabs button.cont{background:#E4F4F0;border-color:#BFE0D8;color:#3F7F72} body.admin .tabs button.cont.on{background:#5FA89A;color:#fff;border-color:#5FA89A}
+  body.admin .apartar{background:linear-gradient(135deg,#7FBFB1,#5FA89A)}
+  body.admin .seccion-liq{color:#7B6CB3}
+  /* Operador: profesional y sobrio */
+  body.op{--fondo:#F3F5F8;--tarjeta:#FFFFFF;--tinta:#1F2A37;--gris:#6B7684;--linea:#E2E6EB;--acento:#2B4C7E;--acento-c:#EAF0F8;--boton:#2B4C7E;--boton-t:#FFFFFF}
+  body.op header{background:#FFFFFF;border-bottom:1px solid var(--linea)}
+  body.op .card{border:1px solid var(--linea);box-shadow:none}
+  .tabs{display:flex;gap:6px;overflow-x:auto;margin:-4px 0 12px;padding-bottom:4px}
+  .tabs button{flex:none;padding:9px 14px;border-radius:99px;border:1px solid var(--linea);background:var(--tarjeta);color:var(--tinta);font:inherit;font-size:14px}
+  .tabs button.on{background:var(--boton);color:var(--boton-t);border-color:var(--boton)}
+  .tabs button.cont{background:var(--ok-c);border-color:#A3C4BE;color:var(--ok)} .tabs button.cont.on{background:var(--ok);color:#fff;border-color:var(--ok)}
+  .leyenda{font-size:12px;color:var(--gris);margin:-6px 0 10px} .leyenda b{color:var(--ok)}
+  .card.cont{border-top:4px solid var(--ok)} .etq-cont{display:inline-block;font-size:11px;font-weight:700;color:var(--ok);background:var(--ok-c);border-radius:8px;padding:2px 8px;margin-bottom:6px}
+  .pend{border-left:4px solid var(--espera)}
+  .revision{font-size:13px;padding:8px 10px;border-radius:8px;margin:8px 0}
+  .r-ok{background:var(--ok-c);color:var(--ok)} .r-mal{background:var(--alerta-c);color:var(--alerta)}
+  .fila2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px} .fila2>div{min-width:0}
+  .datos{font-size:13.5px;margin:6px 0} .datos b{font-weight:600}
+  a{color:var(--acento)}
+  .visor{margin-top:10px;border:1px solid var(--linea);border-radius:10px;overflow:hidden;background:#fff}
+  .visor img{display:block;width:100%;height:auto}
+  .visor .pie{display:flex;justify-content:space-between;gap:8px;padding:8px 10px;font-size:13px;background:var(--acento-c)}
+  .arch .ojo{color:var(--acento);font-size:13px;width:auto;padding:0 10px;border-radius:99px}
+  .doc{position:fixed;inset:0;z-index:50;background:rgba(30,29,36,.92);display:flex;flex-direction:column}
+  .doc .cab{display:flex;align-items:center;gap:8px;padding:10px 12px;color:#fff;font-size:14px}
+  .doc .cab span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .doc .cab a,.doc .cab button{flex:none;color:#fff;background:rgba(255,255,255,.15);border:0;border-radius:99px;padding:8px 14px;font:inherit;text-decoration:none}
+  .doc .hojas{flex:1;overflow:auto;padding:8px;display:flex;flex-direction:column;align-items:center;gap:8px}
+  .doc canvas,.doc img{max-width:100%;height:auto;background:#fff;border-radius:4px}
+  .doc .cargando{color:#fff;margin:auto}
+  .reg-links{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+  .tabla-c{overflow-x:auto;margin-top:10px;border:1px solid var(--linea);border-radius:10px}
+  .tabla{border-collapse:collapse;width:100%;font-size:12.5px;white-space:nowrap}
+  .tabla th{position:sticky;top:0;background:var(--acento-c);text-align:left;padding:7px 8px;font-size:12px}
+  .tabla td{padding:6px 8px;border-top:1px solid var(--linea)} .tabla td.n{text-align:right}
+  .tabla tr.anulado td{color:var(--gris);text-decoration:line-through} .tabla tr.verde td:first-child{border-left:3px solid var(--ok)}
+  .tabla .mini{padding:4px 8px;font-size:11.5px;margin:0 2px}
+  .srv{display:flex;justify-content:space-between;gap:8px;padding:9px 0;border-bottom:1px solid var(--linea);font-size:14px}
+  .srv small{display:block;color:var(--gris);font-size:12px} .srv .est{flex:none;font-size:12px;font-weight:700;border-radius:99px;padding:3px 10px;height:fit-content}
+  .r-espera{background:var(--espera-c);color:var(--espera)}
+  .est.ok{background:var(--ok-c);color:var(--ok)} .est.prox{background:var(--espera-c);color:var(--espera)} .est.toca{background:var(--alerta-c);color:var(--alerta)} .est.sin{background:var(--linea);color:var(--gris)}
+  .pieza{display:grid;grid-template-columns:1fr 64px 90px 34px;gap:6px;align-items:end;margin-top:6px} .pieza button{height:42px;border-radius:10px;border:1px solid var(--linea);background:var(--tarjeta);color:var(--alerta)}
+  .editor{margin:6px 0 10px;padding:10px;border:1px dashed var(--acento);border-radius:10px;background:var(--acento-c)}
+  .editor .fila2{margin-top:0} .editor label{margin-top:6px}
+  .corregir{font-size:12px;color:var(--acento);background:none;border:0;padding:2px 0;text-decoration:underline}
+  .apartar{background:var(--ok);color:#fff;border-radius:14px;padding:16px;margin-top:12px;text-align:center}
+  .apartar small{display:block;opacity:.8;font-size:12.5px} .apartar b{display:block;font-size:30px;margin:4px 0}
+  .apartar .det{display:flex;justify-content:center;gap:18px;font-size:13px;margin-top:6px;opacity:.9}
+  .imp td{padding:6px 4px;border-bottom:1px solid var(--linea);font-size:13.5px} .imp td.n{text-align:right;white-space:nowrap} .imp th{font-size:12px;text-align:right;color:var(--gris)}
+  .imp th:first-child{text-align:left} .imp tr.fuerte td{font-weight:700;background:var(--ok-c)} .imp{width:100%;border-collapse:collapse}
+  .reg-links a{flex:1;text-align:center;padding:10px;border-radius:10px;background:var(--acento-c);text-decoration:none;font-weight:600;font-size:14px}
+  .reg-links a.cont{background:var(--ok-c);color:var(--ok)}
+  .reg-item{border-bottom:1px solid var(--linea);padding:10px 0}
+  .reg-item .l1{display:flex;justify-content:space-between;gap:8px} .reg-item small{display:block;color:var(--gris);font-size:12.5px;margin-top:2px}
+  .reg-item .bt{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px} .reg-item.verde{border-left:3px solid var(--ok);padding-left:8px}
+  .ver{margin-top:4px}
+  .tabla{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px} .tabla th,.tabla td{padding:6px 4px;border-bottom:1px solid var(--linea);text-align:left;vertical-align:top}
+  .tabla td.n,.tabla th.n{text-align:right;white-space:nowrap} .scroll{overflow-x:auto}
+  .liq-bloque{border:1px solid var(--linea);border-radius:14px;padding:14px 14px 10px;margin-top:14px;background:var(--tarjeta)}
+  .liq-bloque.interno{border:2px dashed var(--alerta);background:var(--alerta-c)}
+  .liq-tit{text-align:center;font-size:13px;color:var(--gris);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin:0 0 10px}
+  .liq-fila{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:11px 2px;border-bottom:1px solid var(--linea);font-size:15px}
+  .liq-fila span{color:var(--gris)} .liq-fila b{font-variant-numeric:tabular-nums;white-space:nowrap}
+  .liq-fila.sub span{padding-left:14px;font-size:13.5px}
+  .liq-tot{display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:12px;padding:16px;border-radius:12px;background:var(--acento-c);text-align:center}
+  .liq-tot span{font-size:13px;color:var(--gris)} .liq-tot b{font-size:26px;font-variant-numeric:tabular-nums}
+  .liq-tot small{font-size:13px;color:var(--gris);font-variant-numeric:tabular-nums}
+  .liq-tot.malo{background:var(--alerta-c)} .liq-tot.malo b{color:var(--alerta)}
+  .liq-viaje{padding:10px 2px;border-bottom:1px solid var(--linea);font-size:14px}
+  .liq-viaje .l1{display:flex;justify-content:space-between;gap:8px} .liq-viaje .l2{display:flex;justify-content:space-between;gap:8px;color:var(--gris);font-size:12.5px;margin-top:3px}
+  .liq-item{display:grid;grid-template-columns:1fr 110px auto;align-items:start;gap:10px;padding:9px 2px;border-bottom:1px solid var(--linea);font-size:14px}
+  .liq-item > b{text-align:right;white-space:nowrap} .liq-item > .acciones{display:flex;flex-direction:column;gap:6px;align-items:flex-end} .liq-item > .corregir{justify-self:end} .liq-item > .editor{grid-column:1 / -1} .liq-item small{display:block;color:var(--gris)}
+  .liq-vacio{text-align:center;color:var(--gris);font-size:13px;padding:8px}
+  details.diesel summary{cursor:pointer;color:var(--acento);font-size:14px;margin-top:12px}
+  .diesel-caja{margin-top:14px;padding:12px;border:1px solid var(--linea);border-radius:12px;background:#FBF9F4}
+  .diesel-tit{font-weight:700;font-size:14px;margin-bottom:4px}
+  label.check{display:flex;align-items:center;gap:8px;margin-top:12px;font-weight:500;font-size:14px} label.check input{width:20px;height:20px;margin:0;flex:none}
+  .liq-fila.neto{font-weight:700;border-top:1px dashed var(--linea)}
+  .liq-viaje .l0{display:flex;align-items:center;gap:8px;margin-top:4px;font-size:13px}
+  .liq-viaje .num{flex:none;width:22px;height:22px;border-radius:50%;background:#9DB4E8;color:#fff;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center}
+  .liq-viaje .ruta{flex:1;min-width:0}
+  .liq-viaje .tipo{flex:none;font-size:11.5px;padding:2px 8px;border-radius:10px;background:#E6F0EE;color:#3B6B62} .liq-viaje .tipo.rep{background:#FDEBD3;color:#9A6418}
+  .seccion-liq{font-size:12px;color:var(--gris);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin:16px 0 2px}
+</style>
+</head>
+<body>
+<header><div><h1 id="h-nombre">REGISTRO</h1><small id="h-sub">Inicia sesión</small></div><div><button class="mini hidden" id="b-cambiar">TML / Personal</button> <button class="mini hidden" id="b-salir">Salir</button></div></header>
+<main>
+  <!-- ========== Inicio de sesión (operador o administración) ========== -->
+  <section id="v-login">
+    <div class="card">
+      <h3>Inicia sesión</h3>
+      <label for="l-usuario">Usuario</label><input id="l-usuario" autocomplete="username" autocapitalize="words" placeholder="Tu nombre">
+      <label for="l-pin">Contraseña</label><input id="l-pin" type="password" autocomplete="current-password" placeholder="••••••">
+      <button class="prim" id="b-entrar">Entrar</button>
+      <div class="error" id="e-login"></div>
+    </div>
+  </section>
+
+  <!-- ========== Operador ========== -->
+  <section id="v-op" class="hidden">
+    <h2>¿Qué vas a subir?</h2>
+    <div id="op-botones"></div>
+    <h2>Lo último que mandaste</h2>
+    <div class="card" id="op-recientes"></div>
+  </section>
+  <section id="v-op-form" class="hidden">
+    <div class="card">
+      <h3 id="f-titulo"></h3><div class="nota" id="f-nota"></div>
+      <div id="g-fecha"><label for="f-fecha">Fecha</label><input type="date" id="f-fecha"></div>
+      <div id="g-monto"><label for="f-monto">Monto ($)</label><input type="number" inputmode="decimal" step="0.01" id="f-monto" placeholder="0.00"></div>
+      <div id="g-concepto"><label for="f-concepto">Concepto</label><input id="f-concepto" maxlength="120"></div>
+      <label id="l-foto">Archivos</label>
+      <div class="archivos" id="f-lista"></div>
+      <button class="agregar" id="b-agregar" type="button">+ Agregar archivo o foto</button>
+      <input type="file" id="f-foto" accept="image/*,application/pdf" multiple class="hidden">
+      <label for="f-notas">Notas (opcional)</label><textarea id="f-notas" maxlength="300"></textarea>
+      <button class="prim" id="b-enviar">Enviar</button>
+      <div class="error" id="e-form"></div>
+      <button class="sec" id="b-cancelar">Cancelar</button>
+    </div>
+  </section>
+
+  <!-- ========== Administración ========== -->
+
+  <section id="v-elegir" class="hidden">
+    <button class="opcion" id="b-ir-tml" type="button"><div><b style="font-size:18px">TML</b><br><small>Operación del camión: viajes, liquidación, contabilidad e impuestos</small></div></button>
+    <button class="opcion" id="b-ir-per" type="button"><div><b style="font-size:18px">Personal</b><br><small>Gastos personales del mes, tarjetas y deudas</small></div></button>
+  </section>
+  <section id="v-personal" class="hidden">
+    <div id="el-avisos"></div>
+    <div class="seg" id="p-tabs" style="margin-bottom:12px"><button data-v="gasto" class="on">Gasto</button><button data-v="tarj">Tarjetas</button><button data-v="camion" id="p-tab-em">Camión</button><button data-v="prest">Préstamos</button><button data-v="res">Resumen</button></div>
+    <div class="card" id="p-gasto">
+      <h3>Registrar gasto personal</h3>
+      <div class="fila2"><div><label for="p-fecha">Fecha</label><input type="date" id="p-fecha"></div><div><label for="p-monto">Monto</label><input type="number" step="0.01" inputmode="decimal" id="p-monto"></div></div>
+      <div class="fila2"><div><label for="p-cat">Categoría</label><select id="p-cat"></select></div><div><label for="p-forma">Forma de pago</label><select id="p-forma"></select></div></div>
+      <label for="p-concepto">Concepto</label><input id="p-concepto" placeholder="Ej. Súper Walmart">
+      <label for="p-notas">Notas (opcional)</label><input id="p-notas">
+      <button class="prim" id="b-pgasto" type="button">Guardar gasto</button><div class="error" id="e-pgasto"></div>
+    </div>
+    <div class="hidden" id="p-tarj">
+      <div class="card"><h3>Tarjetas y deudas</h3><div id="p-lista"></div></div>
+      <div class="card"><h3>Pago del mes de una tarjeta</h3>
+        <div class="fila2"><div><label for="p-mt">Tarjeta</label><select id="p-mt"></select></div><div><label for="p-mm">Mes</label><select id="p-mm"></select></div></div>
+        <div class="fila2"><div><label for="p-mapagar">Monto a pagar (corte)</label><input type="number" step="0.01" inputmode="decimal" id="p-mapagar"></div><div><label for="p-mmin">Pago mínimo</label><input type="number" step="0.01" inputmode="decimal" id="p-mmin"></div></div>
+        <label for="p-mlim">Fecha límite de pago</label><input type="date" id="p-mlim">
+        <div class="fila2"><div><label for="p-mpag">Cuánto se pagó</label><input type="number" step="0.01" inputmode="decimal" id="p-mpag"></div><div><label for="p-mfp">Fecha de pago</label><input type="date" id="p-mfp"></div></div>
+        <button class="prim" id="b-pmes" type="button">Guardar pago del mes</button><div class="error" id="e-pmes"></div>
+        <div id="p-pagosmes"></div></div>
+      <div class="card"><h3>Otro movimiento (pago o cargo suelto)</h3>
+        <div class="fila2"><div><label for="p-tnombre">Tarjeta o deuda</label><select id="p-tnombre"></select></div><div><label for="p-tmov">Movimiento</label><select id="p-tmov"><option>Pago</option><option>Cargo</option></select></div></div>
+        <div class="fila2"><div><label for="p-tfecha">Fecha</label><input type="date" id="p-tfecha"></div><div><label for="p-tmonto">Monto</label><input type="number" step="0.01" inputmode="decimal" id="p-tmonto"></div></div>
+        <label for="p-tconcepto">Concepto</label><input id="p-tconcepto">
+        <button class="sec" id="b-pmov" type="button">Guardar movimiento</button><div class="error" id="e-pmov"></div></div>
+      <div class="card"><h3>Agregar tarjeta</h3><input type="hidden" id="p-ntipo" value="Tarjeta de crédito">
+        <div class="fila2"><div><label for="p-nnombre">Nombre</label><input id="p-nnombre" placeholder="Ej. BBVA Azul"></div><div><label for="p-nlim">Límite de crédito</label><input type="number" step="0.01" inputmode="decimal" id="p-nlim"></div></div>
+        <div class="fila2"><div><label for="p-nsaldo">Lo que debes hoy</label><input type="number" step="0.01" inputmode="decimal" id="p-nsaldo"></div><div><label for="p-ncorte">Día de corte</label><input type="number" inputmode="numeric" id="p-ncorte"></div></div>
+        <label for="p-npago">Día límite de pago</label><input type="number" inputmode="numeric" id="p-npago">
+        <button class="sec" id="b-pnueva" type="button">Agregar</button><div class="error" id="e-pnueva"></div></div>
+    </div>
+    <div class="hidden" id="p-camion">
+      <div class="card"><h3 id="p-em-tit">Deuda del camión</h3><div id="p-emres"></div></div>
+      <div class="card"><h3>Registrar</h3>
+        <div class="seg" id="p-emtipo"><button data-v="Prestamo" class="on">Nos prestó / pagó</button><button data-v="Pago">Le pagamos</button></div>
+        <div class="fila2"><div><label for="p-emfecha">Fecha</label><input type="date" id="p-emfecha"></div><div><label for="p-emmonto">Monto</label><input type="number" step="0.01" inputmode="decimal" id="p-emmonto"></div></div>
+        <label for="p-emconcepto">Concepto</label><input id="p-emconcepto" placeholder="Ej. 11° letra del camión">
+        <div class="fila2"><div><label for="p-emquien">Quién</label><select id="p-emquien"></select></div><div><label for="p-emnotas">Notas</label><input id="p-emnotas"></div></div>
+        <button class="prim" id="b-pem" type="button">Guardar</button><div class="error" id="e-pem"></div></div>
+    </div>
+    <div class="hidden" id="p-prest">
+      <div class="card"><h3>Lo que se debe</h3><div id="p-prlista"></div></div>
+      <div class="card"><h3>Nuevo préstamo</h3>
+        <div class="fila2"><div><label for="p-prfecha">Fecha</label><input type="date" id="p-prfecha"></div><div><label for="p-prmonto">Monto</label><input type="number" step="0.01" inputmode="decimal" id="p-prmonto"></div></div>
+        <label for="p-prpersona">Persona y concepto</label><input id="p-prpersona" placeholder="Ej. Nombre - transferencia">
+        <div class="fila2"><div><label for="p-prquien">Quién lo pidió</label><select id="p-prquien"></select></div><div><label for="p-prnotas">Notas</label><input id="p-prnotas"></div></div>
+        <label for="p-prcuenta">¿Dónde se depositó?</label><select id="p-prcuenta"></select>
+        <button class="prim" id="b-ppr" type="button">Guardar préstamo</button><div class="error" id="e-ppr"></div></div>
+    </div>
+    <div class="card hidden" id="p-res"><div id="p-resumen"></div><a class="mini" id="p-abrir" target="_blank" rel="noopener">Abrir el archivo Personal 2026</a></div>
+  </section>
+  <section id="v-admin" class="hidden">
+    <div class="tabs" id="a-tabs">
+      <button data-t="pend" class="on">Por autorizar <span id="a-n"></span></button>
+      <button data-t="liq">Liquidación</button><button data-t="viaje">Viaje</button><button data-t="man">Maniobra</button><button data-t="srv">Servicios</button><button data-t="ant">Anticipo</button>
+      <button data-t="gasto" class="cont">Gasto</button><button data-t="fact" class="cont">Factura</button><button data-t="sat" class="cont">Descarga SAT</button><button data-t="imp" class="cont">Impuestos</button><button data-t="reg">Registros</button>
+    </div>
+    <div class="leyenda">Las pestañas en <b>verde</b> van a <b>tu contabilidad</b> (gastos e ingresos de la empresa). Las demás son de la bitácora y del operador.</div>
+    <div id="t-pend"></div>
+    <div id="t-liq" class="card hidden">
+      <h3>Liquidación del corte</h3><div class="nota">"Desde" empieza solo un día después del último corte de ese operador. Revisa el resumen y luego genera el PDF para revisarlo con el operador.</div>
+      <label for="q-op">Operador</label><select id="q-op"></select>
+      <div class="fila2"><div><label for="q-desde">Desde</label><input type="date" id="q-desde"></div><div><label for="q-hasta">Hasta</label><input type="date" id="q-hasta"></div></div>
+      <label for="q-desc">Descontarle algo en este corte (opcional)</label>
+      <div class="nota" style="margin-top:0">Solo si decides cobrarle en este corte parte de lo que debe (equipo perdido, multas, préstamos). Si no, déjalo vacío.</div>
+      <div class="fila2"><div><input type="number" inputmode="decimal" step="0.01" id="q-desc" placeholder="$0.00" style="margin-top:6px"></div><div><input id="q-cdesc" placeholder="Motivo, ej. multa" style="margin-top:6px"></div></div>
+      <div class="diesel-caja">
+        <div class="diesel-tit">Diésel del periodo · odómetro y tanque</div>
+        <div class="nota" style="margin-top:0">Toca "Traer datos de Smart-Connect" y se llenan solos con el GPS del camión. También puedes escribirlos a mano.</div>
+        <div class="fila2"><div><label for="q-kmi">Km inicial (odómetro)</label><input type="number" inputmode="numeric" id="q-kmi"></div><div><label for="q-kmf">Km final (odómetro)</label><input type="number" inputmode="numeric" id="q-kmf"></div></div>
+        <div class="fila2"><div><label for="q-li">Litros en el tanque al inicio</label><input type="number" inputmode="decimal" id="q-li"></div><div><label for="q-lf">Litros en el tanque al final</label><input type="number" inputmode="decimal" id="q-lf"></div></div>
+        <label for="q-lc">Litros que consumió en el periodo (reporte de Smart-Connect)</label><input type="number" inputmode="decimal" id="q-lc" placeholder="Si lo pones, se usa en lugar del tanque">
+        <button class="sec" id="b-sc" type="button" style="margin-top:10px">Traer datos de Smart-Connect</button><div class="nota" id="q-sc"></div>
+        <label class="check"><input type="checkbox" id="q-cobdie" checked> Descontarle el diésel de más (si lo hay)</label>
+      </div>
+      <button class="prim" id="b-qver">Ver resumen</button><div class="error" id="e-liq"></div>
+      <div id="q-res"></div>
+      <button class="prim hidden" id="b-qgen">Generar liquidación (PDF y hoja)</button>
+      <div id="q-hist"></div>
+    </div>
+    <div id="t-imp" class="card cont hidden">
+      <span class="etq-cont">Contabilidad</span>
+      <h3>Impuestos del mes</h3><div class="nota">Los meses ya presentados muestran lo que se declaró al SAT. Los que faltan se calculan con lo declarado + tus facturas nuevas, la pérdida de 2025 y el estímulo de peaje. La cifra oficial es la del portal del SAT.</div>
+      <label for="i-mes">Mes</label><select id="i-mes"></select>
+      <button class="prim" id="b-imp">Calcular</button><div class="error" id="e-imp"></div>
+      <div id="i-res"></div>
+      <div class="seccion-liq">Subir acuse o comprobante de pago</div>
+      <div class="fila2"><div><label for="i-tipo">Documento</label><select id="i-tipo"><option value="acuse">Acuse de la declaración</option><option value="pago">Comprobante de pago</option></select></div>
+        <div><label for="i-mes2">Mes</label><select id="i-mes2"></select></div></div>
+      <div class="archivos" id="i-lista"></div>
+      <button class="agregar" id="i-agregar" type="button">+ Elegir PDF</button><input type="file" id="i-arch" accept="application/pdf,image/*" class="hidden">
+      <button class="prim" id="b-isub">Guardar en Drive y anotar</button><div class="error" id="e-isub"></div>
+    </div>
+    <div id="t-reg" class="card hidden">
+      <h3>Registros</h3><div class="nota">Todo lo que se ha guardado, con sus archivos. Solo lo ves tú (administración).</div>
+      <div class="reg-links"><a id="r-bit" target="_blank" rel="noopener">Abrir bitácora de viajes</a><a id="r-cont" class="cont" target="_blank" rel="noopener">Abrir contabilidad</a></div>
+      <label for="r-tipo">¿Qué quieres ver?</label>
+      <select id="r-tipo"><option value="viajes">Viajes (con carta porte, bitácora y evidencias)</option><option value="movimientos">Movimientos del operador (anticipos, diésel, gastos…)</option>
+        <option value="envios">Lo que mandó el operador (autorizado o no)</option><option value="liquidaciones">Liquidaciones (PDF y hoja)</option><option value="facturas">Facturas y resumen del mes (contabilidad)</option></select>
+      <div class="fila2"><div><label for="r-mes">Mes</label><input type="month" id="r-mes"></div><div><label for="r-op">Operador</label><select id="r-op"></select></div></div>
+      <label for="r-buscar">Buscar (folio, concepto…)</label><input id="r-buscar" maxlength="60">
+      <div class="fila2"><button class="prim" id="b-reg">Ver tabla</button><button class="prim" id="b-reg-x" style="background:var(--ok)">Abrir en Excel</button></div><div class="error" id="e-reg"></div>
+      <div id="r-res"></div>
+    </div>
+    <div id="t-viaje" class="card hidden">
+      <h3>Carta porte o bitácora</h3><div class="nota">Sube el PDF o la foto (se leen los datos solos) o captura el viaje a mano. Se guarda directo en Torrey - Imbera o ADO, sin pasar por "Por autorizar".</div>
+      <div class="archivos" id="j-lista"></div>
+      <button class="agregar" id="j-agregar" type="button">+ Agregar carta porte o bitácora (opcional)</button><input type="file" id="j-arch" accept="application/pdf,image/*" class="hidden">
+      <div class="nota" id="j-leido"></div>
+      <label>Cliente</label><div class="seg" id="j-cliente"><button data-v="Torrey - Imbera" class="on">Torrey - Imbera</button><button data-v="ADO">ADO</button><button data-v="Cash">Cash</button></div>
+      <div id="j-c-reco"><label>Servicio</label><div class="seg" id="j-servicio"><button data-v="normal" class="on">Flete normal</button><button data-v="reco">Recolección (60%)</button></div>
+        <div id="j-c-monto" class="hidden"><label>El monto que escribo es</label><div class="seg" id="j-monto"><button data-v="100" class="on">Flete completo (100%)</button><button data-v="60">Ya es el 60%</button></div></div></div>
+      <div id="j-solo-cash" class="hidden"><div class="fila2"><div><label for="j-cnombre">Cliente</label><input id="j-cnombre" placeholder="Nombre o Particular"></div>
+        <div><label for="j-pago">Forma de pago</label><select id="j-pago"><option>Efectivo</option><option>Transferencia</option><option>Depósito</option></select></div></div>
+        <label for="j-cobrado">¿Cuánto se cobró ya? (opcional)</label><input type="number" inputmode="decimal" step="0.01" id="j-cobrado"></div>
+      <div class="fila2" id="j-folios"><div><label for="j-folio">Folio del viaje</label><input id="j-folio" inputmode="numeric"></div><div><label for="j-carta">Carta porte</label><input id="j-carta" placeholder="A2736"></div></div>
+      <div class="fila2"><div><label for="j-fecha">Fecha del viaje</label><input type="date" id="j-fecha"></div><div><label for="j-op">Operador</label><select id="j-op"></select></div></div>
+      <div class="fila2"><div><label for="j-origen">Origen</label><input id="j-origen" value="San Juan del Río"></div><div><label for="j-destino">Destino</label><input id="j-destino"></div></div>
+      <div class="fila2"><div><label for="j-flete" id="j-l-flete">Flete ($)</label><input type="number" inputmode="decimal" step="0.01" id="j-flete"></div><div id="j-c-rep"><label for="j-rep">Repartos extra (#)</label><input type="number" inputmode="numeric" id="j-rep"></div></div>
+      <div class="nota hidden" id="j-reco-nota"></div>
+      <div id="j-c-km"><label for="j-km">Km (opcional)</label><input type="number" inputmode="numeric" id="j-km"></div>
+      <button class="prim" id="b-viaje">Guardar viaje</button><div class="error" id="e-viaje"></div>
+      <div class="seccion-liq">Pendientes para el SAT · casetas y factura del TAG</div>
+      <div class="nota" style="margin-top:0">Por cada viaje: lo que se pagó de casetas solo en ese viaje (sin IVA) y la factura del TAG. Es requisito del estímulo de peaje. Cada lunes te llega un recordatorio en tu calendario si falta alguno.</div>
+      <div id="j-sat"></div>
+    </div>
+    <div id="t-srv" class="card hidden">
+      <h3>Servicios de las unidades</h3><div class="nota">Cada unidad por su número. El próximo servicio se calcula con los km del último servicio + el intervalo de cada pieza (los intervalos se cambian en la hoja Servicios). <b>Cada lunes</b> se revisa el km y, cuando faltan los km de aviso de cada pieza, se agrega un recordatorio en tu Google Calendar (te llega al teléfono) para conseguir los filtros a tiempo.</div>
+      <label for="s-uni">Unidad</label><select id="s-uni"></select>
+      <div class="fila2"><div><label for="s-kmact">Km actual</label><input type="number" inputmode="numeric" id="s-kmact"></div>
+        <div style="display:flex;align-items:end"><button class="sec" id="b-skm" type="button" style="width:100%">Actualizar km</button></div></div>
+      <div class="nota" id="s-kmnota"></div>
+      <div class="seccion-liq">Próximos servicios</div><div id="s-prox"></div>
+      <div class="seccion-liq">Antecedentes · servicios ya hechos</div><div id="s-hist"></div>
+      <div class="seccion-liq">Registrar un servicio</div>
+      <div class="fila2"><div><label for="s-fecha">Fecha</label><input type="date" id="s-fecha"></div><div><label for="s-km">Km del servicio</label><input type="number" inputmode="numeric" id="s-km"></div></div>
+      <label>Piezas o servicio</label><div id="s-piezas"></div>
+      <button class="agregar" id="s-mas" type="button">+ Otra pieza</button>
+      <div class="fila2"><div><label for="s-taller">Taller / proveedor</label><input id="s-taller"></div><div><label>¿Factura?</label><div class="seg" id="s-fact"><button data-v="Sí">Sí</button><button data-v="No" class="on">No</button></div></div></div>
+      <div class="archivos" id="s-lista"></div>
+      <button class="agregar" id="s-agregar" type="button">+ Agregar factura o ticket (opcional)</button><input type="file" id="s-arch" accept="application/pdf,image/*" multiple class="hidden">
+      <label for="s-notas">Notas</label><input id="s-notas">
+      <button class="prim" id="b-srv">Registrar servicio</button><div class="error" id="e-srv"></div>
+    </div>
+    <div id="t-man" class="card hidden">
+      <h3>Maniobra</h3><div class="nota">Va al viaje del operador en la bitácora. Si la pagó la empresa, también a la contabilidad del mes.</div>
+      <div class="fila2"><div><label for="m-fecha">Fecha</label><input type="date" id="m-fecha"></div><div><label for="m-monto">Monto ($)</label><input type="number" inputmode="decimal" step="0.01" id="m-monto"></div></div>
+      <label for="m-op">Operador</label><select id="m-op"></select>
+      <label for="m-viaje">Viaje</label><select id="m-viaje"></select>
+      <label for="m-concepto">Concepto</label><input id="m-concepto" placeholder="Ej. Maniobra en Iztapalapa">
+      <label>¿Quién la pagó?</label><div class="seg" id="m-quien"><button data-v="Empresa" class="on">Empresa</button><button data-v="Operador">Operador (se le reembolsa)</button></div>
+      <label>¿Tiene factura?</label><div class="seg" id="m-fact"><button data-v="No" class="on">No</button><button data-v="Sí">Sí</button></div>
+      <div class="archivos" id="m-lista"></div>
+      <button class="agregar" id="m-agregar" type="button">+ Agregar comprobante (opcional)</button><input type="file" id="m-arch" accept="image/*,application/pdf" multiple class="hidden">
+      <button class="prim" id="b-man">Registrar maniobra</button><div class="error" id="e-man"></div>
+    </div>
+    <div id="t-gasto" class="card cont hidden">
+      <span class="etq-cont">Contabilidad</span>
+      <h3>Gasto de la empresa</h3><div class="nota">Es un gasto que pagaron ustedes (no el operador). Se anota en tu contabilidad del mes, en su sección (diésel, gasolina, TAG camión, TAG carro u otros). Si es del camión, también queda en la bitácora.</div>
+      <div><label>¿Tiene factura?</label><div class="seg" id="g-ded"><button data-v="Sí" class="on">Sí (deducible)</button><button data-v="No">No</button></div></div>
+      <div class="fila2"><div><label for="g-fecha">Fecha</label><input type="date" id="g-fecha"></div><div><label for="g-total">Total pagado ($)</label><input type="number" inputmode="decimal" step="0.01" id="g-total"></div></div>
+      <label for="g-cat">Categoría</label><select id="g-cat"></select>
+      <label for="g-concepto">Concepto</label><input id="g-concepto" maxlength="120">
+      <div><div class="fila2"><div><label for="g-pago">Forma de pago</label><select id="g-pago"><option></option><option>Efectivale</option><option>TAG</option><option>Tarjeta</option><option>Transferencia</option><option>Efectivo</option></select></div>
+        <div><label for="g-litros">Litros</label><input type="number" inputmode="decimal" step="0.01" id="g-litros"></div></div>
+      <label for="g-op">¿Es del camión? (operador)</label><select id="g-op"></select>
+      <label for="g-viaje">Viaje (opcional)</label><select id="g-viaje"></select></div>
+      <div class="archivos" id="g-lista"></div>
+      <button class="agregar" id="g-agregar" type="button">+ Agregar factura o ticket (opcional)</button><input type="file" id="g-arch" accept="image/*,application/pdf,.xml" multiple class="hidden">
+      <label for="g-notas">Notas</label><textarea id="g-notas"></textarea>
+      <button class="prim" id="b-gasto">Registrar</button><div class="error" id="e-gasto"></div>
+    </div>
+    <div id="t-ant" class="card hidden">
+      <h3>Anticipo al operador</h3><div class="nota">Sube el comprobante de la transferencia: se leen el monto, la fecha, la referencia y la cuenta. Revisa antes de registrar.</div>
+      <div class="archivos" id="n-lista"></div>
+      <button class="agregar" id="n-agregar" type="button">+ Agregar comprobante (PDF del banco)</button><input type="file" id="n-arch" accept="application/pdf,image/*" class="hidden">
+      <div class="nota" id="n-leido"></div>
+      <div class="fila2"><div><label for="n-fecha">Fecha</label><input type="date" id="n-fecha"></div><div><label for="n-monto">Monto ($)</label><input type="number" inputmode="decimal" step="0.01" id="n-monto"></div></div>
+      <label for="n-op">Operador</label><select id="n-op"></select>
+      <label for="n-concepto">Concepto</label><select id="n-concepto"><option>Anticipo</option><option>Comisión</option><option>Maniobra</option><option>Otro</option></select>
+      <label for="n-viaje">Viaje (opcional)</label><select id="n-viaje"></select>
+      <label for="n-ref">Referencia numérica</label><input id="n-ref" inputmode="numeric">
+      <label for="n-pago">Forma de pago</label><select id="n-pago"><option>Transferencia</option><option>Efectivo</option><option>Depósito</option></select>
+      <button class="prim" id="b-ant">Registrar anticipo</button><div class="error" id="e-ant"></div>
+    </div>
+    <div id="t-fact" class="card cont hidden">
+      <span class="etq-cont">Contabilidad</span>
+      <h3>Subir factura</h3><div class="nota">Sube el XML, el PDF o una foto de la factura. Se lee sola, la revisas y se guarda en el mes y la sección que le corresponden, y también en la hoja <b>Facturas</b> (resumen de tu declaración). Si ya estaba registrada, te avisa.</div>
+      <input type="file" id="x-arch" accept=".xml,text/xml,application/pdf,image/*" multiple style="margin-top:12px">
+      <div id="x-form" class="hidden">
+        <div class="datos" id="x-aviso"></div>
+        <label>Tipo</label><div class="seg" id="x-tipo"><button data-v="gasto" class="on">Gasto</button><button data-v="ingreso">Ingreso</button></div>
+        <div class="fila2"><div><label for="x-fecha">Fecha</label><input type="date" id="x-fecha"></div><div><label for="x-folio">Folio</label><input id="x-folio"></div></div>
+        <label id="x-l-contra" for="x-contra">Emisor</label><input id="x-contra">
+        <label for="x-concepto">Concepto</label><input id="x-concepto">
+        <div class="fila2"><div><label for="x-sub">Subtotal</label><input type="number" step="0.01" id="x-sub"></div><div><label for="x-iva">IVA</label><input type="number" step="0.01" id="x-iva"></div></div>
+        <div class="fila2"><div><label for="x-ret">IVA retenido</label><input type="number" step="0.01" id="x-ret"></div><div><label for="x-total">Total</label><input type="number" step="0.01" id="x-total"></div></div>
+        <div id="x-solo-gasto"><label for="x-cat">Categoría</label><select id="x-cat"></select>
+          <div class="fila2"><div><label for="x-litros">Litros</label><input type="number" step="0.01" id="x-litros"></div><div><label for="x-pago">Forma de pago</label><input id="x-pago"></div></div>
+          <label for="x-op">¿Es del camión? (operador)</label><select id="x-op"></select><label for="x-viaje">Viaje (opcional)</label><select id="x-viaje"></select></div>
+        <button class="prim" id="b-fact">Guardar factura</button>
+      </div>
+      <div class="error" id="e-fact"></div>
+      <div class="seccion-liq">Cobranza · facturas de viajes pagadas y por cobrar</div>
+      <div class="seg" id="c-vista"><button data-v="pend" class="on">Por cobrar</button><button data-v="pag">Pagadas</button></div>
+      <button class="sec" id="b-cob" type="button" style="margin-top:8px">Ver cobranza</button>
+      <div id="c-res"></div><div class="error" id="e-cob"></div>
+    </div>
+    <div id="t-sat" class="card cont hidden">
+      <span class="etq-cont">Contabilidad</span>
+      <h3>Descarga masiva del SAT</h3>
+      <div class="nota">En el portal del SAT descarga tus facturas emitidas y recibidas del mes (ZIP con XML) y súbelo aquí. Solo se agregan las que <b>no</b> estén registradas.</div>
+      <input type="file" id="s-zip" accept=".zip,application/zip" style="margin-top:12px">
+      <button class="prim" id="b-sat">Revisar y agregar faltantes</button>
+      <div id="s-res" class="datos"></div><div class="error" id="e-sat"></div>
+    </div>
+  </section>
+</main>
+<div class="aviso" id="aviso"></div>
+
+<script>
+/* Si algo falla en la página, se muestra en lugar de quedarse sin responder */
+window.onerror = (m, u, l, c, er) => { window.__err = (window.__err || '') + ' | ' + m + ' (línea ' + l + ':' + c + ') ' + (er && er.stack ? er.stack.slice(0, 300) : ''); const e = document.getElementById('e-login'); if (e) e.textContent = 'Error de la página: ' + window.__err; };
+window.addEventListener('unhandledrejection', ev => { const e = document.getElementById('e-login'); if (e && !e.textContent) e.textContent = 'Error: ' + (ev.reason && ev.reason.message || ev.reason); });
+</script>
+<script>
+const REVISAR = (new URLSearchParams(location.search).get('revisar') || '').replace(/[^\w-]/g, '').slice(0, 20);
+const ICONO = {
+  doc: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>',
+  caseta: '<path d="M3 9a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v1.5a2 2 0 0 0 0 3V15a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-1.5a2 2 0 0 0 0-3z"/><path d="M14 7v10"/>',
+  otro: '<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>',
+  flecha: '<path d="M9 6l6 6-6 6"/>'
+};
+const OPCIONES = [
+  {k: 'doc', t: 'Carta porte, bitácora o evidencia', s: 'Elige el archivo; los datos se leen solos', fn: 'subirDocumento', doc: 1},
+  {k: 'caseta', t: 'Caseta en efectivo', s: 'Con foto del ticket', fn: 'enviarGasto', tipo: 'Caseta en efectivo', ph: 'Ej. Caseta Palmillas'},
+  {k: 'otro', t: 'Otro gasto', s: 'Con foto si hay comprobante', fn: 'enviarGasto', tipo: 'Otro gasto', ph: '¿Qué fue?', fotoOpcional: 1}
+];
+let CRED = null, DATOS = null, ADMIN = null, ACTUAL = null, FACT_ARCH = [], FACT = null;
+const MESES_N = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+const LISTAS = {f: [], m: [], g: [], n: [], j: [], s: [], i: []};   // archivos elegidos en cada formulario (se pueden quitar antes de enviar)
+const $ = id => document.getElementById(id);
+const esc = v => String(v == null ? '' : v).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+const dinero = n => '$' + Number(n || 0).toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const VISTAS = ['v-login', 'v-op', 'v-op-form', 'v-admin', 'v-elegir', 'v-personal'];
+const ver = id => { VISTAS.forEach(v => $(v).classList.toggle('hidden', v !== id)); window.scrollTo(0, 0); };
+const aviso = t => { const a = $('aviso'); a.textContent = t; a.style.display = 'block'; clearTimeout(aviso.t); aviso.t = setTimeout(() => a.style.display = 'none', 3800); };
+const hoy = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+const icono = (k, cls) => `<svg viewBox="0 0 24 24" class="${cls || ''}">${ICONO[k]}</svg>`;
+function llamar(fn, ...args) {
+  return llamar0(fn, ...args).catch(e => { if (/sesión terminó/.test(e) && fn !== 'entrar') { CRED = null; ver('v-login'); $('e-login').textContent = e; } throw e; });
+}
+function llamar0(fn, ...args) {
+  return fetch('https://script.google.com/macros/s/AKfycbyGBh8RPG6dGpo0-QEQ5II-lgxNXAtaBDjah9L8J64OSlze_Akn2TA_E-nvu8ewfmvsag/exec', {method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: JSON.stringify({fn: fn, args: args})})
+    .then(r => r.json(), () => { throw 'Sin conexión a internet. Intenta de nuevo.'; })
+    .then(j => { if (!j.ok) throw j.error; return j.r; });
+}
+function seg(id, v) { $(id).querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === v)); }
+function valSeg(id) { const b = $(id).querySelector('button.on'); return b ? b.dataset.v : ''; }
+document.querySelectorAll('.seg').forEach(s => s.querySelectorAll('button').forEach(b => b.addEventListener('click', e => { e.preventDefault(); seg(s.id, b.dataset.v); s.dispatchEvent(new Event('cambio')); })));
+function opciones(sel, lista, vacio) { const s = $(sel); s.innerHTML = vacio !== undefined ? `<option value="">${vacio}</option>` : ''; lista.forEach(x => { const o = document.createElement('option'); o.value = x.folio !== undefined ? x.folio : x; o.textContent = x.texto || x; s.appendChild(o); }); }
+
+/* ---------- Archivos: se pueden quitar antes de enviar; las fotos se reducen en el teléfono ---------- */
+function leer(f) { return new Promise((ok, mal) => { if (f.size > 9e6) return mal(new Error('El archivo pesa más de 9 MB.')); const r = new FileReader();
+  r.onload = () => ok({nombre: f.name.replace(/[^\w.\-]/g, '_'), tipo: f.type || (/\.xml$/i.test(f.name) ? 'text/xml' : 'application/octet-stream'), datos: r.result.split(',')[1]}); r.onerror = mal; r.readAsDataURL(f); }); }
+function reducir(f) { return new Promise((ok, mal) => { const img = new Image(), url = URL.createObjectURL(f);
+  img.onload = () => { const k = Math.min(1, 1800 / Math.max(img.width, img.height)), c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url); ok({nombre: f.name.replace(/\.\w+$/, '').replace(/[^\w\-]/g, '_') + '.jpg', tipo: 'image/jpeg', datos: c.toDataURL('image/jpeg', .78).split(',')[1]}); };
+  img.onerror = mal; img.src = url; }); }
+async function tomar(files, max) { const out = []; for (const f of [...files].slice(0, max || 6)) out.push(f.type.startsWith('image/') ? await reducir(f) : await leer(f)); return out; }
+function pintarArchivos(clave, contenedor) {
+  const box = $(contenedor); box.innerHTML = '';
+  LISTAS[clave].forEach((a, i) => {
+    const fila = document.createElement('div'); fila.className = 'arch';
+    fila.innerHTML = (a.tipo.startsWith('image/') ? `<img alt="" src="data:${a.tipo};base64,${a.datos}">` : `<div class="ico">${/pdf/.test(a.tipo) ? 'PDF' : 'XML'}</div>`) +
+      '<span></span>' + (/pdf|image/.test(a.tipo) ? '<button type="button" class="ojo">Ver</button>' : '') + '<button type="button" class="quitar" aria-label="Quitar archivo">×</button>';
+    fila.querySelector('span').textContent = a.nombre;
+    if (fila.querySelector('.ojo')) fila.querySelector('.ojo').onclick = () => mostrarDoc(a);
+    fila.querySelector('.quitar').onclick = () => { LISTAS[clave].splice(i, 1); pintarArchivos(clave, contenedor); };
+    box.appendChild(fila);
+  });
+}
+function conectarArchivos(clave, boton, input, contenedor, error) {
+  $(boton).onclick = () => $(input).click();
+  $(input).onchange = async e => {
+    try { LISTAS[clave].push(...await tomar(e.target.files, 6 - LISTAS[clave].length)); pintarArchivos(clave, contenedor); }
+    catch (err) { $(error).textContent = err.message || 'No se pudo leer el archivo.'; }
+    e.target.value = '';
+  };
+}
+conectarArchivos('f', 'b-agregar', 'f-foto', 'f-lista', 'e-form');
+conectarArchivos('m', 'm-agregar', 'm-arch', 'm-lista', 'e-man');
+conectarArchivos('g', 'g-agregar', 'g-arch', 'g-lista', 'e-gasto');
+conectarArchivos('n', 'n-agregar', 'n-arch', 'n-lista', 'e-ant');
+conectarArchivos('s', 's-agregar', 's-arch', 's-lista', 'e-srv');
+conectarArchivos('i', 'i-agregar', 'i-arch', 'i-lista', 'e-isub');
+conectarArchivos('j', 'j-agregar', 'j-arch', 'j-lista', 'e-viaje');
+let VIAJE_TIPO = '';
+$('j-arch').addEventListener('change', () => setTimeout(async () => {   // al elegir el archivo, se lee solo
+  const a = LISTAS.j[LISTAS.j.length - 1]; if (!a) return;
+  $('j-leido').textContent = 'Leyendo…';
+  try { const x = await llamar('leerDocumentoAdmin', CRED, a); VIAJE_TIPO = x.tipo;
+    if (x.folio) $('j-folio').value = x.folio; if (x.carta) $('j-carta').value = x.carta; if (x.fecha) $('j-fecha').value = x.fecha;
+    if (x.origen) $('j-origen').value = x.origen; if (x.destino) $('j-destino').value = x.destino; if (x.flete) $('j-flete').value = x.flete;
+    if (x.repartos !== '') $('j-rep').value = x.repartos; if (x.km) $('j-km').value = x.km; seg('j-cliente', x.cliente || 'Torrey - Imbera'); clienteViaje();
+    $('j-leido').textContent = x.aviso; }
+  catch (e) { $('j-leido').textContent = 'No se pudo leer: captura los datos a mano. (' + e + ')'; }
+}, 300));
+const datosReg = () => ({tipo: $('r-tipo').value, mes: $('r-mes').value, operador: $('r-op').value, buscar: $('r-buscar').value});
+$('b-reg').onclick = async () => {
+  $('e-reg').textContent = ''; $('b-reg').disabled = true; const box = $('r-res'); box.innerHTML = '<div class="nota">Buscando…</div>';
+  try {
+    const r = await llamar('registros', CRED, datosReg());
+    if (/^https:[/]{2}/.test(r.urlBitacora || '')) $('r-bit').href = r.urlBitacora;
+    if (/^https:[/]{2}/.test(r.urlContabilidad || '')) $('r-cont').href = r.urlContabilidad;
+    box.innerHTML = '';
+    const t = document.createElement('div'); t.className = 'seccion-liq'; t.textContent = r.filas.length + ' registro(s)'; box.appendChild(t);
+    if (!r.filas.length) return;
+    const c = document.createElement('div'); c.className = 'tabla-c';
+    const tb = document.createElement('table'); tb.className = 'tabla';
+    const hr = tb.createTHead().insertRow(); r.columnas.concat(['Archivos']).forEach(n => { const th = document.createElement('th'); th.textContent = n; hr.appendChild(th); });
+    const body = tb.createTBody();
+    r.filas.forEach(x => {
+      const tr = body.insertRow(); if (x.anulado) tr.className = 'anulado'; if (x.verde) tr.className = 'verde';
+      x.celdas.forEach(v => { const td = tr.insertCell(); if (typeof v === 'number') { td.className = 'n'; td.textContent = dinero(v); } else td.textContent = v == null ? '' : v; });
+      const td = tr.insertCell();
+      (x.archivos || []).forEach(a => { const b = document.createElement('button'); b.className = 'mini'; b.type = 'button'; b.textContent = a.etiqueta; b.onclick = () => verCompleto(a.url); td.appendChild(b); });
+      (x.hojas || []).forEach(a => { if (!/^https:[/]{2}/.test(a.url)) return; const l = document.createElement('a'); l.className = 'mini'; l.target = '_blank'; l.rel = 'noopener'; l.href = a.url; l.textContent = a.etiqueta; td.appendChild(l); });
+    });
+    c.appendChild(tb); box.appendChild(c);
+  } catch (e) { $('e-reg').textContent = e; box.innerHTML = ''; }
+  finally { $('b-reg').disabled = false; }
+};
+$('b-reg-x').onclick = async () => {
+  $('e-reg').textContent = ''; $('b-reg-x').disabled = true; $('b-reg-x').textContent = 'Creando…';
+  try { const r = await llamar('exportarRegistros', CRED, datosReg()); aviso(r.mensaje);
+    const a = document.createElement('a'); a.className = 'prim'; a.style.cssText = 'display:block;text-align:center;text-decoration:none;margin-top:8px'; a.textContent = 'Abrir la tabla';
+    if (/^https:[/]{2}/.test(r.url || '')) { a.href = r.url; a.target = '_blank'; a.rel = 'noopener'; } else a.onclick = e => { e.preventDefault(); aviso('En la versión de prueba no se crea el archivo. En la app instalada se abre en Google Sheets y lo bajas como Excel (Archivo ▸ Descargar ▸ Microsoft Excel).'); };
+    $('r-res').prepend(a); }
+  catch (e) { $('e-reg').textContent = e; }
+  $('b-reg-x').disabled = false; $('b-reg-x').textContent = 'Abrir en Excel';
+};
+/* ---------- Servicios ---------- */
+let SRV = null;
+const estClase = e => /Toca/.test(e) ? 'toca' : /Próximo/.test(e) ? 'prox' : /Al día/.test(e) ? 'ok' : 'sin';
+function pintarServicios(d) {
+  SRV = d; const sel = $('s-uni'), antes = sel.value;
+  sel.innerHTML = ''; d.unidades.forEach(u => { const o = document.createElement('option'); o.value = u.unidad; o.textContent = u.unidad + ' · ' + u.modelo; sel.appendChild(o); });
+  if (antes) sel.value = antes; pintarUnidad();
+}
+function pintarUnidad() {
+  const u = (SRV.unidades || []).find(x => x.unidad === $('s-uni').value) || {}, box = $('s-prox'); box.innerHTML = '';
+  $('s-kmact').value = u.km || ''; $('s-kmnota').textContent = u.kmFecha ? 'Km al ' + u.kmFecha : '';
+  if (!$('s-km').value) $('s-km').value = u.km || '';
+  (SRV.proximos || []).filter(x => x.unidad === u.unidad).forEach(x => {
+    const d = document.createElement('div'); d.className = 'srv';
+    d.innerHTML = '<div><b></b><small></small></div><span class="est"></span>';
+    d.querySelector('b').textContent = x.pieza + ' · ' + x.codigo;
+    d.querySelector('small').textContent = x.estado === 'Pendiente de definir' ? 'Pendiente de confirmar' : x.ultimo ? 'Toca a los ' + num2(x.proximoKm) + ' km' : 'Sin servicio registrado';
+    const e = d.querySelector('.est');
+    if (x.estado === 'Toca servicio') { e.textContent = 'Toca cambio'; e.classList.add('toca'); }
+    else if (x.estado === 'Próximo') { e.textContent = 'Próximo cambio · faltan ' + num2(x.faltan) + ' km'; e.classList.add('prox'); }
+    else e.remove();
+    box.appendChild(d);
+  });
+  pintarHistorial_(u);
+}
+function pintarHistorial_(u) {
+  const box = $('s-hist'), lista = (SRV.recientes || []).filter(x => x.unidad === u.unidad); box.innerHTML = '';
+  if (!lista.length) { box.innerHTML = '<div class="liq-vacio">Todavía no hay servicios registrados</div>'; return; }
+  const c = document.createElement('div'); c.className = 'tabla-c'; const t = document.createElement('table'); t.className = 'tabla';
+  const h = t.createTHead().insertRow(); ['Fecha', 'Km', 'Pieza / servicio', 'Código', 'Costo', 'Taller', ''].forEach(n => { const th = document.createElement('th'); th.textContent = n; h.appendChild(th); });
+  const b = t.createTBody();
+  lista.forEach(x => { const r = b.insertRow(); [x.fecha, num2(x.km), x.pieza, x.codigo, dinero(x.total), x.taller || ''].forEach((v, i) => { const td = r.insertCell(); td.textContent = v; if (i === 1 || i === 4) td.className = 'n'; });
+    const td = r.insertCell(); if (x.archivo) { const bt = document.createElement('button'); bt.className = 'mini'; bt.type = 'button'; bt.textContent = 'Factura'; bt.onclick = () => verCompleto(x.archivo); td.appendChild(bt); } });
+  c.appendChild(t); box.appendChild(c);
+}
+function filaPieza(p) {
+  const f = document.createElement('div'); f.className = 'pieza';
+  f.innerHTML = '<div><select class="pc"><option value="">Otra (escribe en notas)</option></select></div><div><input class="pn" type="number" inputmode="numeric" value="1" aria-label="Cantidad"></div>' +
+    '<div><input class="pp" type="number" step="0.01" inputmode="decimal" placeholder="Precio" aria-label="Precio"></div><button type="button" aria-label="Quitar">×</button>';
+  (SRV ? SRV.intervalos : []).forEach(it => { const o = document.createElement('option'); o.value = it.codigo; o.textContent = it.codigo + ' · ' + it.pieza; f.querySelector('.pc').appendChild(o); });
+  f.querySelector('.pc').onchange = () => { const it = SRV.intervalos.find(x => x.codigo === f.querySelector('.pc').value); if (it && it.precio) f.querySelector('.pp').value = it.precio; };
+  f.querySelector('button').onclick = () => f.remove();
+  if (p) { f.querySelector('.pc').value = p; f.querySelector('.pc').onchange(); }
+  $('s-piezas').appendChild(f);
+}
+$('s-uni').onchange = pintarUnidad;
+$('s-mas').onclick = () => filaPieza();
+document.querySelector('button[data-t="srv"]').addEventListener('click', async () => {
+  if (SRV) return; try { pintarServicios(await llamar('servicios', CRED)); if (!$('s-piezas').children.length) filaPieza(); } catch (e) { $('e-srv').textContent = e; }
+});
+$('b-skm').onclick = async () => {
+  $('b-skm').disabled = true;
+  try { const r = await llamar('actualizarKmUnidad', CRED, {unidad: $('s-uni').value, km: $('s-kmact').value === String(((SRV.unidades || []).find(x => x.unidad === $('s-uni').value) || {}).km) ? '' : $('s-kmact').value});
+    pintarServicios(r); aviso(r.mensaje); } catch (e) { aviso(e); }
+  $('b-skm').disabled = false;
+};
+$('b-srv').onclick = () => {
+  const piezas = [...document.querySelectorAll('#s-piezas .pieza')].map(f => { const c = f.querySelector('.pc').value, it = (SRV.intervalos || []).find(x => x.codigo === c);
+    return {codigo: c, pieza: it ? it.pieza : ($('s-notas').value || 'Servicio'), cantidad: f.querySelector('.pn').value, precio: f.querySelector('.pp').value}; });
+  enviarAdmin('b-srv', 'e-srv', 'registrarServicio', {unidad: $('s-uni').value, fecha: $('s-fecha').value, km: $('s-km').value, piezas, taller: $('s-taller').value,
+    factura: valSeg('s-fact') === 'Sí', notas: $('s-notas').value, archivos: LISTAS.s},
+    r => { pintarServicios(r); $('s-piezas').innerHTML = ''; filaPieza(); limpiar('s', 's-lista'); ['s-taller', 's-notas'].forEach(i => $(i).value = ''); });
+};
+/* ---------- Cobranza ---------- */
+let COB = null;
+function pintarCobranza() {
+  const box = $('c-res'); box.innerHTML = ''; if (!COB) return;
+  const pend = valSeg('c-vista') !== 'pag', lista = pend ? COB.pendientes : COB.pagadas;
+  const top = bloqueLiq(pend ? 'Por cobrar' : 'Pagadas (más recientes)');
+  if (pend) { filaLiq(top, 'Total por cobrar', dinero(COB.totalPendiente), 'neto'); filaLiq(top, 'De eso ya vencido', dinero(COB.totalVencido)); }
+  box.appendChild(top);
+  if (!lista.length) { const v = document.createElement('div'); v.className = 'liq-vacio'; v.textContent = pend ? 'Todo cobrado ✓' : 'Sin pagos registrados'; box.appendChild(v); return; }
+  lista.forEach(x => {
+    const d = document.createElement('div'); d.className = 'reg-item';
+    d.innerHTML = '<div class="l1"><b></b><b></b></div><small></small><small></small>';
+    d.querySelectorAll('.l1 b')[0].textContent = x.cliente + ' · ' + x.folio + (x.carta ? ' / ' + x.carta : '');
+    d.querySelectorAll('.l1 b')[1].textContent = pend ? dinero(x.pendiente) : dinero(x.total);
+    const sm = d.querySelectorAll(':scope > small'); sm[0].textContent = x.fecha + ' · ' + (x.ruta || '');
+    sm[1].textContent = pend ? (x.cobrado ? 'Abonado ' + dinero(x.cobrado) + ' de ' + dinero(x.total) + ' · ' : '') + (x.vencida ? '🔴 Vencida (' + x.vence + ')' : 'Vence ' + x.vence) : '✅ Pagada' + (x.fechaCobro ? ' el ' + x.fechaCobro : '');
+    if (x.vencida) sm[1].style.color = 'var(--alerta)';
+    if (pend) {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'corregir'; b.textContent = 'Registrar pago'; d.appendChild(b);
+      b.onclick = () => { if (d.querySelector('.editor')) return d.querySelector('.editor').remove();
+        const e = document.createElement('div'); e.className = 'editor';
+        e.innerHTML = '<div class="fila2"><div><label>Monto cobrado</label><input type="number" step="0.01" inputmode="decimal" data-c="monto"></div><div><label>Fecha</label><input type="date" data-c="fecha"></div></div><button class="prim" type="button">Guardar pago</button>';
+        e.querySelector('[data-c="monto"]').value = x.pendiente; e.querySelector('[data-c="fecha"]').value = hoy();
+        e.querySelector('button').onclick = async () => { try { COB = await llamar('registrarCobro', CRED, {hoja: x.hoja, fila: x.fila, monto: e.querySelector('[data-c="monto"]').value, fecha: e.querySelector('[data-c="fecha"]').value}); aviso(COB.mensaje); pintarCobranza(); } catch (er) { aviso(er); } };
+        d.appendChild(e); };
+    }
+    box.appendChild(d);
+  });
+}
+$('b-cob').onclick = async () => { $('e-cob').textContent = ''; $('b-cob').disabled = true; try { COB = await llamar('cobranza', CRED); pintarCobranza(); } catch (e) { $('e-cob').textContent = e; } $('b-cob').disabled = false; };
+$('c-vista').addEventListener('cambio', pintarCobranza); $('c-vista').querySelectorAll('button').forEach(b => b.addEventListener('click', () => setTimeout(pintarCobranza, 0)));
+/* ---------- Impuestos ---------- */
+let IMP = null;
+const dineroS = n => n < 0 ? '−' + dinero(-n) : dinero(n);
+function pintarImpuestos() {
+  const m = IMP.meses.find(x => String(x.n) === $('i-mes').value) || IMP.meses[0], box = $('i-res'); box.innerHTML = '';
+  const top = document.createElement('div'); top.className = 'apartar';
+  top.innerHTML = '<small></small><b></b><div class="det"><span></span><span></span></div><small style="margin-top:8px"></small>';
+  const sm = top.querySelectorAll('small');
+  sm[0].textContent = m.presentada ? m.mes + ' · ' + m.estado.replace(/^\S+\s/, '') : 'Apartar para ' + m.mes.toLowerCase() + ' · IVA + ISR (estimado)';
+  top.querySelector('b').textContent = dinero(m.total);
+  top.querySelectorAll('.det span')[0].textContent = 'IVA ' + dinero(m.iva); top.querySelectorAll('.det span')[1].textContent = 'ISR ' + dinero(m.isr);
+  sm[1].textContent = m.pagada ? 'Pagada el ' + m.fechaPago : m.presentada ? 'Presentada el ' + m.fechaPresentacion + (m.operacion ? ' · op. ' + m.operacion : '') + (m.total ? ' · falta pagar' : '')
+    : 'Pagar a más tardar el ' + m.limite + ' (si cae en inhábil, el siguiente día hábil)';
+  box.appendChild(top);
+  const tabla = (titulo, filas, nota) => { const z = bloqueLiq(titulo), t = document.createElement('table'); t.className = 'imp';
+    filas.forEach(f => { const tr = t.insertRow(); if (f[2]) tr.className = 'fuerte'; tr.insertCell().textContent = f[0]; const c = tr.insertCell(); c.className = 'n'; c.textContent = dineroS(f[1]); });
+    z.appendChild(t); if (nota) { const n = document.createElement('div'); n.className = 'nota'; n.textContent = nota; z.appendChild(n); } box.appendChild(z); };
+  if (m.presentada && !m.ivaReal) tabla('Pago de IVA', [['IVA declarado (pagado)', m.iva, 1]], m.notas || '');
+  else tabla('Pago de IVA', [['IVA cobrado (16% de tus facturas de ingreso)', m.ivaCobrado], ['(−) IVA que te retuvieron (4%)', -m.ivaRetenido],
+    ['(−) IVA de tus gastos con factura', -m.ivaAcreditable], [m.pagada ? 'IVA pagado (con recargos, si hubo)' : m.presentada ? 'IVA declarado (por pagar)' : 'IVA a pagar este mes', m.iva, 1]],
+    m.presentada && m.notas ? m.notas : '');
+  tabla('Pago de ISR · acumulado de enero a ' + m.mes.toLowerCase(), [['Ingresos acumulados', m.ingresosAcum], ['(−) Deducciones acumuladas (gastos con factura)', -m.deduccionesAcum],
+    ['(−) Pérdida de 2025', -m.perdida], ['= Base del ISR', m.base], ['ISR según la tarifa del SAT', m.isrCausado], ['(−) Estímulo de peaje acumulado (casetas)', -Math.min(m.peaje, m.isrCausado)],
+    ['(−) ISR pagado en meses anteriores', -m.isrAntes], ['ISR a pagar este mes', m.isr, 1]],
+    m.sobraPeaje > 0 ? 'Te sobran ' + dinero(m.sobraPeaje) + ' de estímulo de peaje para los siguientes meses.' : '');
+  if (m.acuse || m.pago) { const z = bloqueLiq('Documentos de ' + m.mes.toLowerCase()), bt = document.createElement('div'); bt.className = 'fila2';
+    [['Ver acuse', m.acuse], ['Ver comprobante de pago', m.pago]].forEach(([t, u]) => { if (!u) return; const b = document.createElement('button'); b.className = 'sec'; b.type = 'button'; b.textContent = t; b.onclick = () => verCompleto(u); bt.appendChild(b); });
+    z.appendChild(bt); box.appendChild(z); }
+  const an = bloqueLiq('Todo el año'), t = document.createElement('table'); t.className = 'imp';
+  t.innerHTML = '<tr><th>Mes</th><th>IVA</th><th>ISR</th><th>Total</th><th>Estado</th></tr>';
+  let ti = 0, ts = 0; IMP.meses.forEach(x => { if (!x.presentada && !x.total && x.n > Number($('i-mes').value)) return; const tr = t.insertRow(); tr.insertCell().textContent = x.mes;
+    [x.iva, x.isr, x.total].forEach(v => { const c = tr.insertCell(); c.className = 'n'; c.textContent = dinero(v); }); ti += x.iva; ts += x.isr;
+    const e = tr.insertCell(); e.style.fontSize = '11.5px'; e.textContent = x.pagada ? 'Pagada' : x.presentada ? (x.total ? 'Sin pagar' : 'Presentada') : 'Estimado'; });
+  const tr = t.insertRow(); tr.className = 'fuerte'; tr.insertCell().textContent = 'Total'; [ti, ts, ti + ts].forEach(v => { const c = tr.insertCell(); c.className = 'n'; c.textContent = dinero(v); }); tr.insertCell();
+  an.appendChild(t); box.appendChild(an);
+}
+$('b-imp').onclick = async () => {
+  $('e-imp').textContent = ''; $('b-imp').disabled = true; $('i-res').innerHTML = '<div class="nota">Calculando…</div>';
+  try { IMP = await llamar('impuestos', CRED); pintarImpuestos(); } catch (e) { $('e-imp').textContent = e; $('i-res').innerHTML = ''; }
+  $('b-imp').disabled = false;
+};
+$('i-mes').onchange = () => { if (IMP) pintarImpuestos(); $('i-mes2').value = $('i-mes').value; };
+$('b-isub').onclick = async () => {
+  $('e-isub').textContent = ''; if (!LISTAS.i.length) return $('e-isub').textContent = 'Elige el PDF.';
+  $('b-isub').disabled = true; $('b-isub').textContent = 'Guardando…';
+  try { const r = await llamar('subirDeclaracion', CRED, {mes: $('i-mes2').value, tipo: $('i-tipo').value, archivo: LISTAS.i[0]}); IMP = r; $('i-mes').value = $('i-mes2').value; pintarImpuestos(); aviso(r.mensaje); limpiar('i', 'i-lista'); }
+  catch (e) { $('e-isub').textContent = e; }
+  $('b-isub').disabled = false; $('b-isub').textContent = 'Guardar en Drive y anotar';
+};
+
+function pintarSAT(lista) {
+  const box = $('j-sat'); box.innerHTML = lista.length ? '' : '<div class="liq-vacio">Todo completo ✓</div>';
+  lista.forEach(x => {
+    const d = document.createElement('div'); d.className = 'reg-item';
+    d.innerHTML = '<div class="l1"><b></b><small></small></div><small></small><div class="editor" style="display:none"><div class="fila2"><div><label>Casetas del viaje (sin IVA)</label><input type="number" step="0.01" inputmode="decimal" data-c="casetas"></div>' +
+      '<div><label>Folio de la factura del TAG</label><input data-c="cfdi"></div></div><label>Autopistas / ruta (opcional)</label><input data-c="ruta"><div class="archivos"></div>' +
+      '<button class="agregar" type="button">+ Factura del TAG (PDF o foto)</button><input type="file" accept="application/pdf,image/*" class="hidden"><button class="prim" type="button" data-a="g">Guardar</button></div>' +
+      '<button class="corregir" type="button">Completar</button>';
+    d.querySelector('.l1 b').textContent = x.fecha + ' · ' + x.folio; d.querySelector('.l1 small').textContent = x.op || '';
+    d.querySelectorAll(':scope > small')[0].textContent = (x.origen || '') + ' → ' + (x.destino || '') + ' · falta ' + [x.casetas === '' ? 'casetas' : '', x.cfdi === '' ? 'factura del TAG' : ''].filter(String).join(' y ');
+    const ed = d.querySelector('.editor'), arch = []; d.querySelector('.corregir').onclick = () => { ed.style.display = ed.style.display === 'none' ? 'block' : 'none'; };
+    if (x.casetas !== '') ed.querySelector('[data-c="casetas"]').value = x.casetas; if (x.cfdi) ed.querySelector('[data-c="cfdi"]').value = x.cfdi;
+    const inp = ed.querySelector('input[type=file]'); ed.querySelector('.agregar').onclick = () => inp.click();
+    inp.onchange = async () => { arch.length = 0; arch.push(...await tomar(inp.files, 1)); ed.querySelector('.archivos').textContent = arch.map(a => a.nombre).join(', '); };
+    ed.querySelector('[data-a="g"]').onclick = async () => { const p = {fila: x.fila, archivos: arch}; ed.querySelectorAll('[data-c]').forEach(i => p[i.dataset.c] = i.value);
+      try { const r = await llamar('completarBitacoraSAT', CRED, p); aviso(r.mensaje); ADMIN.pendientesSAT = r.pendientesSAT; pintarSAT(r.pendientesSAT); } catch (e) { aviso(e); } };
+    box.appendChild(d);
+  });
+}
+/** Recolección (solo Torrey): se cobra el 60% de un flete normal y el destino dice "Recolección". */
+const esReco = () => valSeg('j-cliente') === 'Torrey - Imbera' && valSeg('j-servicio') === 'reco';
+const yaEs60 = () => esReco() && valSeg('j-monto') === '60';
+function notaReco() {
+  const n = $('j-reco-nota'), f = Number($('j-flete').value) || 0; n.classList.toggle('hidden', !esReco());
+  $('j-c-monto').classList.toggle('hidden', !esReco());
+  n.textContent = 'Se registra como recolección: ' + (yaEs60() ? (f ? 'se cobra ' + dinero(f) + ' tal cual (ya es el 60%)' : 'escribe el monto que ya es el 60%')
+    : f ? 'se cobra ' + dinero(Math.round(f * 60) / 100) + ' (60% de ' + dinero(f) + ')' : 'escribe el flete completo y se cobra el 60%') + '.';
+}
+function clienteViaje() { const c = valSeg('j-cliente') === 'Cash';
+  ['j-folios', 'j-c-rep', 'j-c-km', 'j-agregar'].forEach(i => $(i).classList.toggle('hidden', c)); $('j-solo-cash').classList.toggle('hidden', !c);
+  $('j-c-reco').classList.toggle('hidden', valSeg('j-cliente') !== 'Torrey - Imbera');
+  $('j-l-flete').textContent = c ? 'Precio ($)' : yaEs60() ? 'Monto de la recolección (60%) ($)' : esReco() ? 'Flete completo ($)' : 'Flete ($)'; notaReco(); }
+$('j-servicio').addEventListener('cambio', clienteViaje); $('j-monto').addEventListener('cambio', clienteViaje); $('j-flete').addEventListener('input', notaReco);
+$('j-cliente').addEventListener('cambio', clienteViaje);
+$('j-cliente').querySelectorAll('button').forEach(b => b.addEventListener('click', () => setTimeout(clienteViaje, 0)));
+$('b-viaje').onclick = () => enviarAdmin('b-viaje', 'e-viaje', 'guardarViaje', {clienteNombre: $('j-cnombre').value, formaPago: $('j-pago').value, cobrado: $('j-cobrado').value, cliente: valSeg('j-cliente'), folio: $('j-folio').value, carta: $('j-carta').value, fecha: $('j-fecha').value,
+  operador: $('j-op').value, origen: $('j-origen').value, destino: $('j-destino').value, flete: $('j-flete').value, repartos: $('j-rep').value, km: $('j-km').value, tipo: VIAJE_TIPO, archivos: LISTAS.j, recoleccion: esReco(), recoYa60: yaEs60()},
+  () => { limpiar('j', 'j-lista'); ['j-folio', 'j-carta', 'j-destino', 'j-flete', 'j-rep', 'j-km', 'j-cnombre', 'j-cobrado'].forEach(i => $(i).value = ''); $('j-leido').textContent = ''; VIAJE_TIPO = ''; seg('j-servicio', 'normal'); seg('j-monto', '100'); clienteViaje(); });
+let RASTREO = '';
+$('n-arch').addEventListener('change', () => setTimeout(async () => {   // al elegir el comprobante, se lee solo
+  if (!LISTAS.n.length) return;
+  $('n-leido').textContent = 'Leyendo comprobante…';
+  try { const c = await llamar('leerComprobante', CRED, LISTAS.n[LISTAS.n.length - 1]);
+    if (c.monto) $('n-monto').value = c.monto; if (c.fecha) $('n-fecha').value = c.fecha; if (c.referencia) $('n-ref').value = c.referencia;
+    RASTREO = c.rastreo || '';
+    $('n-leido').textContent = c.leidos ? '✓ Se leyeron ' + c.leidos + ' de 4 datos' + (c.beneficiario ? ' · beneficiario: ' + c.beneficiario : '') + '. Revísalos.' : '⚠ No se pudo leer: captura los datos a mano.'; }
+  catch (e) { $('n-leido').textContent = '⚠ ' + e; }
+}, 300));
+const limpiar = (clave, contenedor) => { LISTAS[clave] = []; pintarArchivos(clave, contenedor); };
+
+/* ---------- Inicio de sesión ---------- */
+$('b-entrar').onclick = async () => {
+  $('e-login').textContent = ''; $('b-entrar').disabled = true;
+  try {
+    CRED = {usuario: $('l-usuario').value.trim(), pin: $('l-pin').value.trim()};
+    const r = await llamar('entrar', CRED); CRED = {usuario: CRED.usuario, token: r.token}; $('l-pin').value = ''; $('b-salir').classList.remove('hidden');
+    document.body.classList.toggle('admin', r.rol === 'admin'); document.body.classList.toggle('op', r.rol !== 'admin');
+    if (r.rol === 'admin') { pintarAdmin(r); if (r.personal) { $('b-cambiar').classList.remove('hidden'); $('b-cambiar').click(); } else ver('v-admin'); } else { pintarOp(r); ver('v-op'); }
+  } catch (e) { $('e-login').textContent = e; CRED = null; }
+  $('b-entrar').disabled = false;
+};
+$('l-pin').addEventListener('keydown', e => { if (e.key === 'Enter') $('b-entrar').click(); });
+$('b-salir').onclick = () => { if (CRED && CRED.token) llamar('salir', CRED).catch(() => {}); CRED = null; $('b-cambiar').classList.add('hidden'); document.body.classList.remove('admin', 'op'); $('l-pin').value = ''; $('h-nombre').textContent = 'REGISTRO'; $('h-sub').textContent = 'Inicia sesión'; $('b-salir').classList.add('hidden'); ver('v-login'); };
+
+
+/* ---------- Personal (solo la administradora principal) ---------- */
+let PER = null;
+function pintarPersonal(p) {
+  PER = p; $('h-nombre').textContent = 'PERSONAL'; $('h-sub').textContent = 'Gastos, tarjetas y deudas';
+  const tarjetas = p.deudas.filter(d => /Tarjeta/.test(d.tipo)).map(d => d.nombre);
+  opciones('p-cat', p.categorias); opciones('p-forma', p.formas); opciones('p-tnombre', p.deudas.map(d => d.nombre)); opciones('p-mt', tarjetas); opciones('p-mm', p.meses);
+  [['p-emquien', p.personas], ['p-prquien', p.personas], ['p-prcuenta', p.cuentas]].forEach(([i, l]) => { const v = $(i).value; opciones(i, l || []); if (v) $(i).value = v; });
+  $('p-tab-em').textContent = p.acreedor; $('p-em-tit').textContent = 'Deuda con ' + p.acreedor;
+  $('p-mm').value = p.mesActual; ['p-fecha', 'p-tfecha'].forEach(i => { if (!$(i).value) $(i).value = hoy(); });
+  const l = $('p-lista'); l.innerHTML = '';
+  if (!p.deudas.length) l.innerHTML = '<div class="liq-vacio">Agrega tus tarjetas abajo</div>';
+  const delMes = {}; p.pagosMes.forEach(x => delMes[x.tarjeta] = x);
+  const orden = p.deudas.filter(d => !/Préstamo/.test(d.tipo)).concat(p.deudas.filter(d => /Préstamo/.test(d.tipo)));
+  const enc = bloqueLiq('A pagar en ' + p.mesActual);
+  orden.forEach(d => { const m = delMes[d.nombre];
+    enc.appendChild(itemLiq(d.nombre, (m && m.limite ? 'Fecha límite ' + m.limite + ' · ' : '') + (m && m.minimo && m.aPagar > m.minimo + 0.5 ? 'mínimo del banco ' + dinero(m.minimo) + ' · ' : '') + 'debe ' + dinero(d.saldo),
+      !m ? '—' : m.pagado >= (m.aPagar || m.minimo) - 0.5 ? '✅ Pagado' : dinero(m.aPagar || m.minimo))); });
+  filaLiq(enc, 'Deuda total (tarjetas y préstamo)', dinero(p.deuda), 'neto'); l.appendChild(enc);
+  $('p-pagosmes').innerHTML = '';
+  const r = $('p-resumen'); r.innerHTML = '';
+  const b1 = bloqueLiq('Gastos personales');
+  p.gastosMeses.filter(x => x[1] > 0 || x[0] === p.mesActual).forEach(x => filaLiq(b1, x[0] + (x[0] === p.mesActual ? ' (en curso)' : ''), dinero(x[1])));
+  filaLiq(b1, 'Total del año', dinero(p.anio), 'neto'); r.appendChild(b1);
+  if (p.mes.porCat.length) { const bc = bloqueLiq(p.mesActual + ' por categoría'); p.mes.porCat.forEach(c => filaLiq(bc, c[0], dinero(c[1]))); r.appendChild(bc); }
+  const aPagarMes = p.pagosMes.reduce((s, x) => s + (x.aPagar || x.minimo), 0), pagadoMes = p.pagosMes.reduce((s, x) => s + x.pagado, 0);
+  const bt = bloqueLiq('Tarjetas'); filaLiq(bt, 'A pagar en ' + p.mesActual, dinero(aPagarMes)); filaLiq(bt, 'Ya pagado', dinero(pagadoMes)); filaLiq(bt, 'Falta por pagar', dinero(Math.max(0, aPagarMes - pagadoMes))); filaLiq(bt, 'Deuda total (tarjetas y préstamo)', dinero(p.deuda), 'neto'); r.appendChild(bt);
+  const bp = bloqueLiq('Préstamos personales'); filaLiq(bp, 'Lo que se debe', dinero(p.debemosConocidos), 'neto'); r.appendChild(bp);
+  const be = bloqueLiq(p.acreedor + ' (camión)'); filaLiq(be, 'Le debemos', dinero(p.camion.saldo), 'neto'); r.appendChild(be);
+  pintarDeudas(p); pintarAvisos(p.avisosPago);
+  $('p-abrir').href = p.url;
+}
+function pintarAvisos(lista) {
+  const box = $('el-avisos'); box.innerHTML = ''; if (!lista || !lista.length) return;
+  const b = bloqueLiq('Pagos de tarjetas pendientes');
+  lista.forEach(x => { const it = itemLiq(x.tarjeta, 'Fecha límite ' + x.limite + ' · ' + 'a pagar ' + dinero(x.aPagar || x.minimo) + (x.minimo && x.aPagar > x.minimo + 0.5 ? ' · mínimo del banco ' + dinero(x.minimo) : '') + (x.pagado ? ' · ya pagaste ' + dinero(x.pagado) : ''),
+      x.dias < 0 ? 'Vencido hace ' + (-x.dias) + (x.dias === -1 ? ' día' : ' días') : x.dias === 0 ? 'Vence HOY' : 'Faltan ' + x.dias + (x.dias === 1 ? ' día' : ' días'));
+    if (x.dias <= 3) it.querySelector('b').style.color = 'var(--alerta)'; b.appendChild(it); });
+  box.appendChild(b);
+}
+function pintarDeudas(p) {
+  const e = $('p-emres'); e.innerHTML = ''; const b = bloqueLiq('Saldo');
+  filaLiq(b, 'Nos prestó', dinero(p.camion.prestado)); filaLiq(b, 'Le hemos pagado', dinero(p.camion.pagado)); filaLiq(b, 'Le debemos', dinero(p.camion.saldo), 'neto'); e.appendChild(b);
+  if (p.camion.ultimos.length) { const u = bloqueLiq('Últimos movimientos'); p.camion.ultimos.forEach(x => u.appendChild(itemLiq(x.concepto, (x.fecha || 'sin fecha') + (x.quien ? ' · ' + x.quien : ''), x.abono ? '−' + dinero(x.abono) : dinero(x.cargo)))); e.appendChild(u); }
+  const l = $('p-prlista'); l.innerHTML = '';
+  if (!p.prestamos.length) l.innerHTML = '<div class="liq-vacio">No se debe nada ✓</div>';
+  p.prestamos.forEach(x => { const d = itemLiq(x.persona, (x.fecha || 'sin fecha') + (x.cuenta ? ' · a ' + x.cuenta : '') + (x.pagado ? ' · ya se pagó ' + dinero(x.pagado) : ''), dinero(x.pendiente));
+    const acc = document.createElement('div'); acc.className = 'acciones'; d.appendChild(acc);
+    const pagar = async (monto, fecha) => { try { const r = await llamar('prestamoConocido', CRED, {fila: x.fila, monto: monto, fecha: fecha}); aviso(r.mensaje); pintarPersonal(r.datos); } catch (er) { aviso(er); } };
+    const lq = document.createElement('button'); lq.type = 'button'; lq.className = 'corregir'; lq.textContent = 'Liquidado'; acc.appendChild(lq);
+    lq.onclick = () => { if (confirm('¿Marcar como liquidado? Se registra el pago de ' + dinero(x.pendiente) + ' con fecha de hoy.')) pagar(x.pendiente, hoy()); };
+    const bt = document.createElement('button'); bt.type = 'button'; bt.className = 'corregir'; bt.textContent = 'Pago parcial'; acc.appendChild(bt);
+    bt.onclick = () => { if (d.querySelector('.editor')) return d.querySelector('.editor').remove(); const ed = document.createElement('div'); ed.className = 'editor';
+      ed.innerHTML = '<div class="fila2"><div><label>Monto pagado</label><input type="number" step="0.01" inputmode="decimal" data-c="monto"></div><div><label>Fecha</label><input type="date" data-c="fecha"></div></div><button class="prim" type="button">Guardar pago</button>';
+      ed.querySelector('[data-c="fecha"]').value = hoy();
+      ed.querySelector('button').onclick = () => pagar(ed.querySelector('[data-c="monto"]').value, ed.querySelector('[data-c="fecha"]').value);
+      d.appendChild(ed); };
+    l.appendChild(d); });
+  if (p.prestamos.length) filaLiq(l, 'Total que se debe', dinero(p.debemosConocidos), 'neto');
+  ['p-emfecha', 'p-prfecha'].forEach(i => { if (!$(i).value) $(i).value = hoy(); });
+}
+$('b-pem').onclick = () => enviarPer('b-pem', 'e-pem', 'registroCamion', {tipo: valSeg('p-emtipo'), fecha: $('p-emfecha').value, monto: $('p-emmonto').value, concepto: $('p-emconcepto').value, quien: $('p-emquien').value, notas: $('p-emnotas').value}, () => ['p-emmonto', 'p-emconcepto', 'p-emnotas'].forEach(i => $(i).value = ''));
+$('b-ppr').onclick = () => enviarPer('b-ppr', 'e-ppr', 'prestamoConocido', {fecha: $('p-prfecha').value, monto: $('p-prmonto').value, persona: $('p-prpersona').value, quien: $('p-prquien').value, notas: $('p-prnotas').value, cuenta: $('p-prcuenta').value}, () => ['p-prmonto', 'p-prpersona', 'p-prnotas'].forEach(i => $(i).value = ''));
+async function enviarPer(btn, err, fn, d, despues) { $(err).textContent = ''; $(btn).disabled = true;
+  try { const r = await llamar(fn, CRED, d); aviso(r.mensaje); if (despues) despues(); pintarPersonal(r.datos); } catch (e) { $(err).textContent = e; } $(btn).disabled = false; }
+$('p-tabs').querySelectorAll('button').forEach(b => b.addEventListener('click', () => setTimeout(() => { const v = valSeg('p-tabs'); $('el-avisos').classList.add('hidden'); ['gasto', 'tarj', 'camion', 'prest', 'res'].forEach(k => $('p-' + k).classList.toggle('hidden', k !== v)); }, 0)));
+$('b-ir-per').onclick = async () => { ver('v-personal'); $('el-avisos').classList.remove('hidden'); $('h-nombre').textContent = 'PERSONAL'; $('h-sub').textContent = 'Cargando…'; try { pintarPersonal(await llamar('datosPersonal', CRED)); } catch (e) { aviso(e); } };
+$('b-ir-tml').onclick = () => { pintarAdmin(ADMIN); ver('v-admin'); };
+$('b-cambiar').onclick = () => { $('h-nombre').textContent = 'HOLA, ' + String(CRED && CRED.usuario || '').toUpperCase(); $('h-sub').textContent = '¿Qué quieres ver?'; ver('v-elegir'); };
+$('b-pgasto').onclick = () => enviarPer('b-pgasto', 'e-pgasto', 'guardarGastoPersonal', {fecha: $('p-fecha').value, monto: $('p-monto').value, categoria: $('p-cat').value, forma: $('p-forma').value, concepto: $('p-concepto').value, notas: $('p-notas').value}, () => ['p-monto', 'p-concepto', 'p-notas'].forEach(i => $(i).value = ''));
+$('b-pmes').onclick = () => enviarPer('b-pmes', 'e-pmes', 'pagoMesTarjeta', {tarjeta: $('p-mt').value, mes: $('p-mm').value, aPagar: $('p-mapagar').value, minimo: $('p-mmin').value, limite: $('p-mlim').value, pagado: $('p-mpag').value, fechaPago: $('p-mfp').value}, () => ['p-mapagar', 'p-mmin', 'p-mlim', 'p-mpag', 'p-mfp'].forEach(i => $(i).value = ''));
+$('b-pmov').onclick = () => enviarPer('b-pmov', 'e-pmov', 'movimientoDeuda', {nombre: $('p-tnombre').value, mov: $('p-tmov').value, fecha: $('p-tfecha').value, monto: $('p-tmonto').value, concepto: $('p-tconcepto').value}, () => ['p-tmonto', 'p-tconcepto'].forEach(i => $(i).value = ''));
+$('b-pnueva').onclick = () => enviarPer('b-pnueva', 'e-pnueva', 'nuevaDeuda', {nombre: $('p-nnombre').value, tipo: $('p-ntipo').value, limite: $('p-nlim').value, saldo: $('p-nsaldo').value, corte: $('p-ncorte').value, pago: $('p-npago').value}, () => ['p-nnombre', 'p-nlim', 'p-nsaldo', 'p-ncorte', 'p-npago'].forEach(i => $(i).value = ''));
+
+/* ---------- Operador ---------- */
+OPCIONES.forEach(x => { const b = document.createElement('button'); b.className = 'opcion';
+  b.innerHTML = `${icono(x.k)}<div><b>${x.t}</b><span>${x.s}</span></div>${icono('flecha', 'flecha')}`; b.onclick = () => abrir(x); $('op-botones').appendChild(b); });
+function pintarOp(d) {
+  DATOS = d; $('h-nombre').textContent = String(d.operador).toUpperCase(); $('h-sub').textContent = 'Mi registro';
+  const box = $('op-recientes'); box.innerHTML = d.recientes.length ? '' : '<small style="color:var(--gris)">Aún no has mandado nada.</small>';
+  d.recientes.forEach(x => { const e = document.createElement('div'); e.className = 'item';
+    e.innerHTML = `<div><b></b><small></small></div><div style="text-align:right">${x.monto != null ? '<b>' + dinero(x.monto) + '</b>' : ''}</div>`;
+    e.querySelector('b').textContent = x.tipo; e.querySelector('small').textContent = x.fecha + ' · ' + (x.concepto || ''); box.appendChild(e); });
+}
+function abrir(x) {
+  ACTUAL = x; limpiar('f', 'f-lista'); $('e-form').textContent = '';
+  $('f-titulo').textContent = x.t; $('f-fecha').value = hoy(); ['f-monto', 'f-concepto', 'f-notas'].forEach(i => $(i).value = '');
+  ['g-fecha', 'g-monto', 'g-concepto'].forEach(g => $(g).classList.toggle('hidden', !!x.doc));
+  $('f-concepto').placeholder = x.ph || '';
+  $('l-foto').textContent = x.doc ? 'Archivos (puedes agregar varios)' : x.fotoOpcional ? 'Foto del comprobante (si no hay, déjalo sin foto)' : 'Foto del ticket';
+  $('b-agregar').textContent = x.doc ? '+ Agregar archivo' : '+ Agregar foto';
+  $('f-nota').textContent = x.doc ? 'Sube el PDF de la carta porte y el de la bitácora tal como te llegan. El folio, la carta porte, los destinos y el flete se leen solos. Las fotos de evidencia se ligan al último folio que subiste.'
+    : 'El monto que escribas se compara con la foto del ticket.';
+  ver('v-op-form');
+}
+$('b-cancelar').onclick = () => ver('v-op');
+$('b-enviar').onclick = async () => {
+  const x = ACTUAL, d = {fecha: $('f-fecha').value, notas: $('f-notas').value, archivos: LISTAS.f};
+  $('e-form').textContent = '';
+  if (!LISTAS.f.length && !x.fotoOpcional) return $('e-form').textContent = x.doc ? 'Agrega el archivo.' : 'Agrega la foto del ticket.';
+  if (!x.doc) { d.tipo = x.tipo; d.monto = $('f-monto').value; d.concepto = $('f-concepto').value || x.t;
+    if (!d.fecha) return $('e-form').textContent = 'Pon la fecha.';
+    if (!(Number(d.monto) > 0)) return $('e-form').textContent = 'Escribe el monto.'; }
+  $('b-enviar').disabled = true; $('b-enviar').textContent = 'Enviando…';
+  try { const r = await llamar(x.fn, CRED, d); pintarOp(r); ver('v-op'); aviso(r.mensaje || 'Enviado.'); }
+  catch (e) { $('e-form').textContent = e; }
+  $('b-enviar').disabled = false; $('b-enviar').textContent = 'Enviar';
+};
+
+/* ---------- Administración ---------- */
+$('a-tabs').querySelectorAll('button').forEach(b => b.onclick = () => {
+  $('a-tabs').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+  ['pend', 'liq', 'viaje', 'man', 'srv', 'gasto', 'ant', 'fact', 'sat', 'imp', 'reg'].forEach(t => $('t-' + t).classList.toggle('hidden', t !== b.dataset.t));
+});
+function pintarAdmin(a) {
+  ADMIN = a; $('h-nombre').textContent = 'ADMINISTRACIÓN'; $('h-sub').textContent = a.contabilidad ? 'Bitácora y contabilidad conectadas' : 'Falta conectar la contabilidad (menú TML ▸ Configurar)';
+  $('a-n').textContent = a.pendientes.length ? '(' + a.pendientes.length + ')' : '';
+  const box = $('t-pend'); box.innerHTML = a.pendientes.length ? '' : '<div class="card"><small style="color:var(--gris)">No hay nada por autorizar.</small></div>';
+  if ((a.pendientesSAT || []).length) { const w = document.createElement('div'); w.className = 'revision r-espera'; w.style.cursor = 'pointer';
+    w.textContent = '🧾 ' + a.pendientesSAT.length + ' viaje(s) sin casetas o sin factura del TAG (Bitácora SAT) · toca para completar';
+    w.onclick = () => { document.querySelector('button[data-t="viaje"]').click(); setTimeout(() => $('j-sat').scrollIntoView({block: 'start'}), 50); }; box.prepend(w); }
+  pintarSAT(a.pendientesSAT || []);
+  (a.avisosServicio || []).forEach(x => { const w = document.createElement('div'); w.className = 'revision ' + (/Toca/.test(x.estado) ? 'r-mal' : 'r-espera');
+    w.textContent = '🔧 Unidad ' + x.unidad + ' · ' + x.pieza + ': ' + (/Toca/.test(x.estado) ? 'toca servicio' : 'faltan ' + num2(x.faltan) + ' km'); w.style.cursor = 'pointer';
+    w.onclick = () => document.querySelector('button[data-t="srv"]').click(); box.prepend(w); });
+  a.pendientes.forEach(p => {
+    const c = document.createElement('div'); c.className = 'card pend'; c.id = 'p-' + p.id;
+    const mal = /⚠/.test(p.lectura || '');
+    c.innerHTML = `<div style="display:flex;justify-content:space-between;gap:8px"><b class="t"></b>${p.documento ? '' : '<b>' + dinero(p.monto) + '</b>'}</div>
+      <div class="datos q"></div>${p.lectura ? `<div class="revision ${mal ? 'r-mal' : 'r-ok'} l"></div>` : ''}
+      ${p.foto ? `<button class="mini ver" type="button">Ver ${p.documento ? 'archivo' : 'foto del ticket'}</button><div class="visor-c"></div>` : '<span class="nota">Sin archivo</span>'}
+      ${p.documento ? '<label>Comentario (si falta el folio escribe: folio 9000001234)</label><input class="c" maxlength="200">'
+        : '<div class="fila2"><div><label>Monto que se reconoce</label><input type="number" step="0.01" class="m"></div><div><label>Comentario</label><input class="c" maxlength="200"></div></div>' +
+          '<label>¿Tiene comprobante?</label><select class="sc"><option value="">Sí, con comprobante (se le reembolsa)</option><option value="1">No · sale del 1% de su comisión</option></select>'}
+      <div class="fila2"><button class="prim ok" style="margin-top:12px">Autorizar</button><button class="prim no" style="margin-top:12px;background:var(--alerta);color:#fff">Rechazar</button></div>`;
+    c.querySelector('.t').textContent = (p.documento ? 'Documento' : p.tipo) + ' · ' + p.op;
+    c.querySelector('.q').textContent = p.fecha + (p.viaje ? ' · viaje ' + p.viaje : '') + ' · ' + p.concepto + (p.notas ? ' · "' + p.notas + '"' : '');
+    if (p.lectura) c.querySelector('.l').textContent = p.lectura;
+    if (p.foto) c.querySelector('.ver').onclick = () => verArchivo(p.foto, c.querySelector('.visor-c'), c.querySelector('.ver'));
+    if (!p.documento) { c.querySelector('.m').value = p.monto; c.querySelector('.sc').value = p.foto ? '' : '1'; }
+    c.querySelector('.ok').onclick = async () => { try { pintarAdmin(await llamar('autorizar', CRED, p.id, p.documento ? '' : c.querySelector('.m').value, c.querySelector('.c').value, false, !p.documento && c.querySelector('.sc').value === '1')); aviso('Autorizado y registrado.'); } catch (e) { aviso(e); } };
+    c.querySelector('.no').onclick = async () => { try { pintarAdmin(await llamar('rechazar', CRED, p.id, c.querySelector('.c').value)); aviso('Rechazado. No se registró.'); } catch (e) { aviso(e); } };
+    box.appendChild(c);
+  });
+  const ops = a.operadores, vj = a.viajes;
+  opciones('q-op', ops); opciones('m-op', ops); opciones('n-op', ops); opciones('j-op', ops); opciones('r-op', ops, 'Todos');
+  if (!$('i-mes').options.length) { ['i-mes', 'i-mes2'].forEach(id => MESES_N.forEach((n, i) => { const o = document.createElement('option'); o.value = i + 1; o.textContent = n; $(id).appendChild(o); }));
+    $('i-mes').value = $('i-mes2').value = String(Math.max(1, new Date().getMonth())); }   // por omisión, el mes que se declara (el anterior)
+  if (!$('r-mes').value) $('r-mes').value = hoy().slice(0, 7);
+  desdeLiq(); pintarHistorial(a.liquidaciones || []);
+  opciones('g-op', ops, '— No es del camión —'); opciones('x-op', ops, '— No es del camión —');
+  viajesManiobra(); opciones('g-viaje', vj, '— Sin viaje —'); opciones('x-viaje', vj, '— Sin viaje —'); opciones('n-viaje', vj, '— Sin viaje —');
+  catsGasto(); opciones('x-cat', a.catsDed);
+  ['g-fecha', 'n-fecha', 'm-fecha', 'j-fecha', 's-fecha'].forEach(i => $(i).value = $(i).value || hoy());
+  if (REVISAR && $('p-' + REVISAR)) { const c = $('p-' + REVISAR); c.style.outline = '2px solid var(--acento)'; setTimeout(() => c.scrollIntoView({block: 'center'}), 50); }
+}
+/* ---------- Visor de documentos: PDF completo (todas las páginas) o foto ---------- */
+let PDFJS = null;
+function cargarPdfJs() {
+  if (PDFJS) return PDFJS;
+  PDFJS = new Promise((ok, mal) => { const sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    sc.onload = () => { pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; ok(pdfjsLib); };
+    sc.onerror = () => { PDFJS = null; mal(new Error('No se pudo cargar el visor de PDF.')); }; document.head.appendChild(sc); });
+  return PDFJS;
+}
+async function mostrarDoc(a) {   // a = {nombre, tipo, datos(base64), url?}
+  const d = document.createElement('div'); d.className = 'doc';
+  d.innerHTML = '<div class="cab"><span></span>' + (/^https:[/]{2}/.test(a.url || '') ? '<a target="_blank" rel="noopener">Abrir en Drive</a>' : '') + '<button type="button">Cerrar</button></div><div class="hojas"><div class="cargando">Cargando…</div></div>';
+  d.querySelector('span').textContent = a.nombre || 'Documento'; if (d.querySelector('a')) d.querySelector('a').href = a.url;
+  d.querySelector('button').onclick = () => d.remove(); document.body.appendChild(d);
+  const hojas = d.querySelector('.hojas');
+  try {
+    if (/^image[/]/.test(a.tipo)) { hojas.innerHTML = '<img alt="">'; hojas.querySelector('img').src = 'data:' + a.tipo + ';base64,' + a.datos; return; }
+    const lib = await cargarPdfJs(), bin = atob(a.datos), bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const pdf = await lib.getDocument({data: bytes}).promise; hojas.innerHTML = '';
+    for (let n = 1; n <= Math.min(pdf.numPages, 20); n++) {
+      const pg = await pdf.getPage(n), v = pg.getViewport({scale: 1}), k = Math.min(2, (hojas.clientWidth - 16) * (window.devicePixelRatio || 1) / v.width);
+      const vp = pg.getViewport({scale: k}), c = document.createElement('canvas'); c.width = vp.width; c.height = vp.height;
+      c.style.width = Math.round(vp.width / (window.devicePixelRatio || 1)) + 'px'; hojas.appendChild(c);
+      await pg.render({canvasContext: c.getContext('2d'), viewport: vp}).promise;
+    }
+  } catch (e) { hojas.innerHTML = '<div class="cargando"></div>'; hojas.firstChild.textContent = String(e.message || e); }
+}
+async function verCompleto(url, nombre) {
+  aviso('Abriendo…');
+  try { const r = await llamar('verArchivo', CRED, url, true); mostrarDoc(r.datos ? r : {nombre: r.nombre, url: r.url, tipo: r.imagen.tipo, datos: r.imagen.datos}); } catch (e) { aviso(e); }
+}
+async function verArchivo(url, caja, boton) {
+  if (caja.innerHTML) { caja.innerHTML = ''; boton.textContent = boton.textContent.replace('Ocultar', 'Ver'); return; }
+  boton.disabled = true; boton.textContent = 'Cargando…';
+  try {
+    const r = await llamar('verArchivo', CRED, url);
+    const v = document.createElement('div'); v.className = 'visor';
+    v.innerHTML = (r.imagen ? '<img alt="Archivo enviado">' : '<div class="nota" style="padding:12px">No hay vista previa todavía; ábrelo completo.</div>') +
+      '<div class="pie"><span></span><a target="_blank" rel="noopener">Ver completo</a></div>';
+    if (r.imagen) v.querySelector('img').src = 'data:' + r.imagen.tipo + ';base64,' + r.imagen.datos;
+    v.querySelector('span').textContent = (r.esPdf ? 'PDF · primera página · ' : '') + r.nombre;
+    if (/^https:[/]{2}/.test(r.url)) v.querySelector('a').href = r.url;
+    v.querySelector('a').onclick = e => { e.preventDefault(); verCompleto(url, r.nombre); };
+    caja.appendChild(v); boton.textContent = 'Ocultar archivo';
+  } catch (e) { aviso(e); boton.textContent = 'Ver archivo'; }
+  boton.disabled = false;
+}
+/** Viajes de ese operador cuya fecha queda a 3 días o menos de la fecha de la maniobra. */
+function viajesManiobra() {
+  const op = $('m-op').value, f = $('m-fecha').value ? +new Date($('m-fecha').value + 'T12:00:00') : Date.now();
+  const cerca = (ADMIN.viajes || []).filter(v => (!op || v.op === op) && Math.abs(v.f - f) <= 3 * 864e5);
+  opciones('m-viaje', cerca, cerca.length ? '— Elige el viaje —' : '— No hay viajes de ' + (op || 'ese operador') + ' en esas fechas —');
+}
+function catsGasto() { opciones('g-cat', valSeg('g-ded') === 'Sí' ? ADMIN.catsDed : ADMIN.catsNod); }
+$('g-ded').addEventListener('cambio', catsGasto);
+$('m-op').addEventListener('change', viajesManiobra); $('m-fecha').addEventListener('change', viajesManiobra);
+
+/* ---------- Liquidación del corte ---------- */
+function desdeLiq() { const d = (ADMIN.desdeSiguiente || {})[$('q-op').value]; if (d) $('q-desde').value = d; if (!$('q-hasta').value) $('q-hasta').value = hoy(); }
+$('q-op').addEventListener('change', () => { desdeLiq(); $('q-res').innerHTML = ''; $('b-qgen').classList.add('hidden'); });
+const datosLiq = () => ({operador: $('q-op').value, desde: $('q-desde').value, hasta: $('q-hasta').value, descuento: $('q-desc').value, conceptoDescuento: $('q-cdesc').value,
+  kmInicial: $('q-kmi').value, kmFinal: $('q-kmf').value, litrosInicio: $('q-li').value, litrosFin: $('q-lf').value, cobrarDiesel: $('q-cobdie').checked,
+  consumidosGps: SC ? SC.consumidosGps : $('q-lc').value, bajadasGps: SC ? SC.bajadasGps : ''});
+let SC = null;
+['q-desde', 'q-hasta', 'q-kmi', 'q-kmf', 'q-li', 'q-lf', 'q-lc'].forEach(i => $(i).addEventListener('input', () => { SC = null; $('q-sc').textContent = ''; }));
+$('b-sc').onclick = async () => {
+  $('b-sc').disabled = true; $('q-sc').textContent = 'Consultando el GPS…';
+  try { const r = await llamar('smartConnect', CRED, {desde: $('q-desde').value, hasta: $('q-hasta').value});
+    $('q-kmi').value = r.kmInicial; $('q-kmf').value = r.kmFinal; $('q-li').value = r.litrosInicio; $('q-lf').value = r.litrosFin; $('q-lc').value = r.consumidosGps || ''; SC = r;
+    $('q-sc').textContent = r.mensaje + (r.consumidosGps ? ' · consumió ' + num2(r.consumidosGps) + ' L' : '') + (Number(r.bajadasGps) > 0 ? ' · ⚠ bajadas de combustible: ' + num2(r.bajadasGps) + ' L' : ''); }
+  catch (e) { $('q-sc').textContent = String(e.message || e); }
+  $('b-sc').disabled = false;
+};
+const num2 = n => Number(n || 0).toLocaleString('es-MX', {maximumFractionDigits: 2});
+function bloqueLiq(titulo, clase) { const b = document.createElement('div'); b.className = 'liq-bloque' + (clase ? ' ' + clase : ''); const t = document.createElement('div'); t.className = 'liq-tit'; t.textContent = titulo; b.appendChild(t); return b; }
+function filaLiq(b, etiqueta, valor, clase) { const f = document.createElement('div'); f.className = 'liq-fila' + (clase ? ' ' + clase : ''); f.innerHTML = '<span></span><b></b>';
+  f.querySelector('span').textContent = etiqueta; f.querySelector('b').textContent = valor; b.appendChild(f); }
+function totLiq(b, etiqueta, valor, malo, detalle) { const t = document.createElement('div'); t.className = 'liq-tot' + (malo ? ' malo' : ''); t.innerHTML = '<span></span><b></b><small></small>';
+  t.querySelector('span').textContent = etiqueta; t.querySelector('b').textContent = valor; t.querySelector('small').textContent = detalle || ''; b.appendChild(t); }
+function listaLiq(b, filas, render, total, etiquetaTotal) {
+  if (!filas.length) { const v = document.createElement('div'); v.className = 'liq-vacio'; v.textContent = 'Sin registros en estas fechas'; b.appendChild(v); return; }
+  filas.forEach(x => b.appendChild(render(x)));
+  filaLiq(b, etiquetaTotal || 'Total', dinero(total));
+}
+function itemLiq(izq, sub, der) { const d = document.createElement('div'); d.className = 'liq-item'; d.innerHTML = '<div><span></span><small></small></div><b></b>';
+  d.querySelector('span').textContent = izq; d.querySelector('small').textContent = sub; d.querySelector('b').textContent = der; return d; }
+/** Formulario para corregir un renglón de la liquidación (antes de generarla). */
+const aISO = f => { const p = String(f || '').split('/'); return p.length === 3 ? (p[2].length === 2 ? '20' + p[2] : p[2]) + '-' + p[1].padStart(2, '0') + '-' + p[0].padStart(2, '0') : ''; };
+function botonCorregir(cont, L, x, tipo) {
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'corregir'; b.textContent = 'Corregir'; cont.appendChild(b);
+  b.onclick = () => {
+    if (cont.querySelector('.editor')) return cont.querySelector('.editor').remove();
+    const e = document.createElement('div'); e.className = 'editor'; const cash = x.cliente === 'Cash';
+    const campo = (id, et, val, tipoI) => `<div><label>${et}</label><input data-c="${id}" type="${tipoI || 'text'}" ${tipoI === 'number' ? 'step="0.01" inputmode="decimal"' : ''}></div>`;
+    e.innerHTML = tipo === 'viaje'
+      ? `<div class="fila2">${campo('fecha', 'Fecha', '', 'date')}${campo('flete', cash ? 'Precio' : 'Flete', '', 'number')}</div>` +
+        (cash ? '' : `<div class="fila2">${campo('repartos', 'Repartos extra (#)', '', 'number')}${campo('carta', 'Carta porte')}</div>`) + `<label>Ruta</label><input data-c="ruta">`
+      : `<div class="fila2">${campo('fecha', 'Fecha', '', 'date')}${campo('monto', 'Monto', '', 'number')}</div>` +
+        (tipo === 'anticipo' ? `<label>Referencia</label><input data-c="referencia">` : `<label>Concepto</label><input data-c="concepto"><label class="check"><input type="checkbox" data-c="sinComprobante"> Sin comprobante</label>`);
+    e.innerHTML += `<div class="fila2"><button class="prim" type="button" data-a="g">Guardar</button>${tipo === 'viaje' ? '' : '<button class="prim" type="button" data-a="x" style="background:var(--alerta)">Anular</button>'}</div>`;
+    const pon = (k, v) => { const i = e.querySelector(`[data-c="${k}"]`); if (i) { if (i.type === 'checkbox') i.checked = !!v; else i.value = v == null ? '' : v; } };
+    pon('fecha', aISO(x.fecha)); pon('flete', x.flete); pon('repartos', x.nrep); pon('carta', x.carta); pon('ruta', x.ruta);
+    pon('monto', x.monto); pon('referencia', x.referencia); pon('concepto', x.concepto); pon('sinComprobante', tipo === 'sinComp');
+    const enviar = async anular => {
+      const campos = {}; e.querySelectorAll('[data-c]').forEach(i => campos[i.dataset.c] = i.type === 'checkbox' ? i.checked : i.value);
+      if (anular) { const mot = prompt('¿Por qué se anula? (opcional)'); if (mot === null) return; campos.anular = true; campos.motivo = mot; }
+      try { const r = await llamar('corregirMovimiento', CRED, {operador: L.op, ref: x.ref, campos}); aviso(r.mensaje); $('b-qver').click(); } catch (er) { aviso(er); }
+    };
+    e.querySelector('[data-a="g"]').onclick = () => enviar(false); if (e.querySelector('[data-a="x"]')) e.querySelector('[data-a="x"]').onclick = () => enviar(true);
+    cont.appendChild(e);
+  };
+}
+function agregarLiq(box, L) {
+  const z = bloqueLiq('¿Falta algo? Agregar');
+  z.innerHTML += `<div class="fila2"><button class="sec" type="button" data-a="g">+ Gasto del operador</button><button class="sec" type="button" data-a="a">+ Anticipo</button></div><button class="sec" type="button" data-a="c">Subir archivo de Pase (.txt) o Efectivale (.xls)</button><input type="file" class="hidden" data-a="arch" accept=".txt,.xls,.xlsx,.csv" multiple><div class="f"></div>`;
+  const f = z.querySelector('.f'), viajes = L.viajes.map(v => `<option value="${esc(v.folio)}">${esc(v.fecha + ' · ' + v.folio)}</option>`).join('');
+  z.querySelector('[data-a="g"]').onclick = () => {
+    f.innerHTML = `<div class="editor"><div class="fila2"><div><label>Tipo</label><select data-c="tipo"><option>Caseta</option><option>Maniobra</option><option>Otro</option></select></div><div><label>Fecha</label><input type="date" data-c="fecha"></div></div>
+      <div class="fila2"><div><label>Monto</label><input type="number" step="0.01" inputmode="decimal" data-c="monto"></div><div><label>Viaje</label><select data-c="viaje"><option value="">—</option>${viajes}</select></div></div>
+      <label>Concepto</label><input data-c="concepto"><label class="check"><input type="checkbox" data-c="sinComprobante"> Sin comprobante</label><button class="prim" type="button">Agregar gasto</button></div>`;
+    f.querySelector('[data-c="fecha"]').value = $('q-hasta').value;
+    f.querySelector('button').onclick = async () => { const d = {operador: L.op}; f.querySelectorAll('[data-c]').forEach(i => d[i.dataset.c] = i.type === 'checkbox' ? i.checked : i.value);
+      try { const r = await llamar('agregarGastoOperador', CRED, d); aviso(r.mensaje); $('b-qver').click(); } catch (er) { aviso(er); } };
+  };
+  const camion = (tipo, campos, boton) => () => {
+    f.innerHTML = `<div class="editor"><div class="fila2"><div><label>Fecha</label><input type="date" data-c="fecha"></div><div><label>Viaje</label><select data-c="viaje"><option value="">—</option>${viajes}</select></div></div>${campos}<button class="prim" type="button">${boton}</button></div>`;
+    f.querySelector('[data-c="fecha"]').value = $('q-hasta').value;
+    f.querySelector('button').onclick = async () => { const d = {operador: L.op, tipo: tipo}; f.querySelectorAll('[data-c]').forEach(i => d[i.dataset.c] = i.value);
+      try { const r = await llamar('registrarCamion', CRED, d); aviso(r.mensaje); $('b-qver').click(); } catch (er) { aviso(er); } };
+  };
+  const arch = z.querySelector('[data-a="arch"]');
+  z.querySelector('[data-a="c"]').onclick = () => arch.click();
+  arch.onchange = async () => { const fs = [...arch.files]; if (!fs.length) return; const res = [];
+    for (const fl of fs) { f.innerHTML = '<div class="nota">Leyendo ' + esc(fl.name) + '…</div>';
+      try { const a = await leer(fl); const r = await llamar('cargarArchivoCamion', CRED, {operador: L.op, desde: $('q-desde').value, hasta: $('q-hasta').value, nombre: a.nombre, tipo: a.tipo, datos: a.datos}); res.push('✓ ' + fl.name + ': ' + r.mensaje); }
+      catch (er) { res.push('✗ ' + fl.name + ': ' + er); } }
+    arch.value = ''; f.innerHTML = ''; alert(res.join(String.fromCharCode(10, 10))); $('b-qver').click(); };
+  if (false) camion('casetas', `<div class="fila2"><div><label>Monto total de casetas</label><input type="number" step="0.01" inputmode="decimal" data-c="monto"></div><div><label>Concepto</label><input data-c="concepto" placeholder="Cruces Pase del 07/07 al 25/10"></div></div>`, 'Agregar casetas');
+  if (false) camion('diesel', `<div class="fila2"><div><label>Litros cargados</label><input type="number" step="0.01" inputmode="decimal" data-c="litros"></div><div><label>Precio por litro (opcional)</label><input type="number" step="0.01" inputmode="decimal" data-c="precio"></div></div><label>Km del odómetro (opcional)</label><input type="number" inputmode="numeric" data-c="km">`, 'Agregar carga');
+  z.querySelector('[data-a="a"]').onclick = () => {
+    f.innerHTML = `<div class="editor"><div class="fila2"><div><label>Fecha</label><input type="date" data-c="fecha"></div><div><label>Monto</label><input type="number" step="0.01" inputmode="decimal" data-c="monto"></div></div>
+      <label>Referencia</label><input data-c="referencia" inputmode="numeric"><button class="prim" type="button">Agregar anticipo</button></div>`;
+    f.querySelector('[data-c="fecha"]').value = $('q-hasta').value;
+    f.querySelector('button').onclick = async () => { const d = {operador: L.op, concepto: 'Anticipo', pago: 'Transferencia', archivos: []}; f.querySelectorAll('[data-c]').forEach(i => d[i.dataset.c] = i.value);
+      try { const r = await llamar('registrarAnticipo', CRED, d); aviso(r.mensaje); $('b-qver').click(); } catch (er) { aviso(er); } };
+  };
+  box.appendChild(z);
+}
+function pintarLiq(L, generada) {
+  const box = $('q-res'); box.innerHTML = ''; const editar = !generada; const t = L.tot, Di = L.diesel || {}, I = L.interno;
+  // Resumen: comisión, gastos y anticipos (diésel de más y descuento solo si aplican)
+  const r = bloqueLiq('Resumen · ' + L.desde + ' al ' + L.hasta);
+  filaLiq(r, 'Comisión 13%', dinero(t.c13));
+  if (t.sinComp) filaLiq(r, '(−) Gastos sin comprobante', '−' + dinero(t.sinComp));
+  filaLiq(r, '(+) Gastos pagados por el operador', dinero(t.gastos));
+  filaLiq(r, '(−) Anticipos', '−' + dinero(t.anticipos));
+  if (t.diesel) filaLiq(r, '(−) Diésel de más (' + num2(Di.faltante) + ' L)', '−' + dinero(t.diesel));
+  if (t.descuentos) filaLiq(r, '(−) Descuento', '−' + dinero(t.descuentos));
+  totLiq(r, 'Monto de liquidación', dinero(t.saldo), t.saldo < 0);
+  box.appendChild(r);
+  if (L.pendientes) { const w = document.createElement('div'); w.className = 'revision r-mal'; w.textContent = '⚠ Hay ' + L.pendientes + ' envío(s) de ' + L.op + ' sin autorizar en estas fechas. Autorízalos o recházalos antes de generar la liquidación.'; box.appendChild(w); }
+  // 1. Viajes numerados con origen, destino y tipo
+  const v = bloqueLiq('1. Viajes (' + L.viajes.length + ')');
+  L.viajes.forEach((x, i) => { const d = document.createElement('div'); d.className = 'liq-viaje';
+    d.innerHTML = '<div class="l1"><b></b><b></b></div><div class="l0"><span class="num"></span><span class="ruta"></span></div><div class="l2"><span></span><span></span></div>';
+    const b = d.querySelectorAll('.l1 b'), s2 = d.querySelectorAll('.l2 span');
+    b[0].textContent = x.fecha + ' · ' + (x.cliente === 'ADO' ? 'ADO · ' : '') + x.folio; b[1].textContent = 'Comisión 13% ' + dinero((x.c12 || 0) + (x.c1 || 0));
+    d.querySelector('.num').textContent = x.n || i + 1;
+    d.querySelector('.ruta').textContent = (x.origen || x.ruta || '') + (x.destino ? '  →  ' + x.destino : '');
+    s2[0].textContent = 'Flete ' + dinero(x.flete) + (x.nrep ? ' + ' + x.nrep + (x.nrep === 1 ? ' reparto ' : ' repartos ') + dinero(x.repartos) : ''); s2[1].textContent = '';
+    if (editar && x.ref) botonCorregir(d, L, x, 'viaje');
+    v.appendChild(d); });
+  if (!L.viajes.length) { const e = document.createElement('div'); e.className = 'liq-vacio'; e.textContent = 'Sin viajes en estas fechas'; v.appendChild(e); }
+  filaLiq(v, 'Total comisión 13%', dinero(t.c13));
+  box.appendChild(v);
+  // 2. Diésel
+  const g = bloqueLiq('2. Diésel del periodo');
+  filaLiq(g, 'Km recorridos (' + (Di.fuenteKm || 'sin km') + ')', num2(Di.km) + ' km');
+  if (Di.gps) filaLiq(g, 'Litros que gastó (computadora del camión, Smart-Connect)', num2(Di.consumidos) + ' L', 'neto');
+  filaLiq(g, 'Tanque al inicio', Di.conTanque ? num2(Di.tanqueInicio) + ' L' : 'no capturado');
+  filaLiq(g, '(+) Litros cargados', num2(Di.litros) + ' L · ' + dinero(Di.monto));
+  filaLiq(g, '(−) Tanque al final', Di.conTanque ? num2(Di.tanqueFin) + ' L' : 'no capturado');
+  if (!Di.gps) filaLiq(g, '= Litros consumidos', num2(Di.consumidos) + ' L', 'neto');
+  if (Di.bajadasGps > 0) { const w = document.createElement('div'); w.className = 'revision r-mal'; w.textContent = '⚠ El GPS detectó bajadas de combustible por ' + num2(Di.bajadasGps) + ' L en el periodo'; g.appendChild(w); }
+  filaLiq(g, 'Rendimiento real / esperado', (Di.rendReal ? num2(Di.rendReal) : '—') + ' / ' + num2(Di.rendEsp) + ' km/L');
+  filaLiq(g, 'Litros que debió usar', num2(Di.esperados) + ' L');
+  if (Di.faltante) totLiq(g, '⚠ Usó ' + num2(Di.faltante) + ' L de más (con ' + Math.round((Di.tolerancia || 0) * 100) + '% de tolerancia)', dinero(Di.cobro), true, t.diesel ? 'Se descuenta en el resumen' : !Di.datosCompletos ? 'No se descuenta: faltan km del odómetro y litros (trae los datos de Smart-Connect)' : 'No se descuenta (casilla desmarcada)');
+  else if (Di.km) { const ok = document.createElement('div'); ok.className = 'revision r-ok'; ok.textContent = '✓ El consumo de diésel está dentro de lo esperado'; g.appendChild(ok); }
+  box.appendChild(g);
+  // 3, 4, 5
+  const m = bloqueLiq('3. Maniobras pagadas por operador (' + L.maniobras.length + ')');
+  const conCorregir = (tipo, fn) => x => { const d = fn(x); if (editar && x.ref) botonCorregir(d, L, x, tipo); return d; };
+  listaLiq(m, L.maniobras, conCorregir('gasto', x => itemLiq(x.n + '. ' + x.concepto, x.fecha + (x.viaje ? ' · viaje ' + x.viaje : ''), dinero(x.monto))), t.maniobras, 'Total'); box.appendChild(m);
+  const o = bloqueLiq('4. Otros gastos (' + L.otros.length + ')');
+  listaLiq(o, L.otros, conCorregir('gasto', x => itemLiq(x.n + '. ' + x.concepto, x.fecha + ' · ' + x.tipo, dinero(x.monto))), t.otros, 'Total'); box.appendChild(o);
+  const sc = bloqueLiq('5. Gastos sin comprobante (' + (L.sinComp || []).length + ')');
+  listaLiq(sc, L.sinComp || [], conCorregir('sinComp', x => itemLiq(x.n + '. ' + x.concepto, x.fecha + (x.viaje ? ' · viaje ' + x.viaje : ''), dinero(x.monto))), t.sinComp || 0, 'Total');
+  filaLiq(sc, 'Dentro del 1%', dinero(t.c1)); filaLiq(sc, 'Saldo a favor', dinero(t.c1Queda != null ? t.c1Queda : t.c1), 'neto'); box.appendChild(sc);
+  const a = bloqueLiq('6. Anticipos (' + L.anticipos.length + ')');
+  listaLiq(a, L.anticipos, conCorregir('anticipo', x => itemLiq(x.n + '. ' + x.fecha, 'Ref. ' + (x.referencia || '—'), dinero(x.monto))), t.anticipos, 'Total'); box.appendChild(a);
+  if (editar) agregarLiq(box, L);
+  // Solo administración
+  if (I) {
+    const z = bloqueLiq('Administración - No operador', 'interno'), C = I.costos;
+    filaLiq(z, 'Ingresos de los viajes (flete + repartos + maniobras cobradas)', dinero(I.ingresos));
+    [['Diésel', C.diesel], ['Casetas usadas TAG/Pase (sin IVA)', C.tag], ['Casetas en efectivo (sin IVA)', C.casetas], ['Urea', C.urea], ['Maniobras pagadas', C.maniobrasNuestras],
+     ['Maniobra operador', C.maniobrasOperador], ['Comisión del operador (13%)', C.comision], ['Otros gastos del operador', C.otrosOperador]]
+      .forEach(x => filaLiq(z, '(−) ' + x[0], '−' + dinero(x[1]), 'sub'));
+    totLiq(z, 'Utilidad del camión en este corte · ' + (Math.round(I.pct * 1000) / 10) + '%', dinero(I.utilidad), I.utilidad < 0);
+    box.appendChild(z);
+  }
+}
+function pintarHistorial(lista) {
+  const h = $('q-hist'); h.innerHTML = lista.length ? '<div class="seccion-liq">Liquidaciones anteriores</div>' : '';
+  lista.forEach(x => { const d = document.createElement('div'); d.className = 'item';
+    d.innerHTML = '<div><b></b><small></small></div><div style="text-align:right"><b></b><br><a target="_blank" rel="noopener">PDF</a> · <a target="_blank" rel="noopener">Hoja</a></div>';
+    d.querySelectorAll('b')[0].textContent = x.op + ' · ' + x.desde + ' al ' + x.hasta; d.querySelector('small').textContent = x.estado || 'Pendiente';
+    d.querySelectorAll('b')[1].textContent = dinero(x.saldo); const ls = d.querySelectorAll('a');
+    [[ls[0], x.pdf], [ls[1], x.url]].forEach(([a, u]) => { if (/^https:[/]{2}/.test(u || '')) a.href = u; else a.onclick = e => { e.preventDefault(); aviso('En la versión de prueba no hay archivo real. Revisa la liquidación de ejemplo en la bitácora.'); }; });
+    h.appendChild(d); });
+}
+$('b-qver').onclick = async () => {
+  $('e-liq').textContent = ''; $('b-qver').disabled = true; $('b-qgen').classList.add('hidden');
+  try { pintarLiq(await llamar('verLiquidacion', CRED, datosLiq())); $('b-qgen').classList.remove('hidden'); }
+  catch (e) { $('e-liq').textContent = e; $('q-res').innerHTML = ''; }
+  $('b-qver').disabled = false;
+};
+$('b-qgen').onclick = async () => {
+  $('e-liq').textContent = ''; $('b-qgen').disabled = true; $('b-qgen').textContent = 'Generando…';
+  try { const r = await llamar('generarLiquidacion', CRED, datosLiq()); pintarLiq(r, true);
+    const boton = (txt, url, fondo, demo) => { const a = document.createElement('a'); a.className = 'prim'; a.style.cssText = 'display:block;text-align:center;text-decoration:none;margin-top:8px' + (fondo ? ';background:' + fondo : '');
+      a.textContent = txt; if (/^https:[/]{2}/.test(url || '')) { a.href = url; a.target = '_blank'; a.rel = 'noopener'; } else a.onclick = e => { e.preventDefault(); aviso(demo); }; $('q-res').appendChild(a); };
+    const t = document.createElement('div'); t.className = 'seccion-liq'; t.textContent = 'Descargar'; $('q-res').appendChild(t);
+    boton('PDF para el operador · su resumen y saldo a favor', r.pdfUrl, '', 'En la versión de prueba no se crea el PDF. En la app instalada se guarda en tu Drive ▸ Liquidaciones.');
+    boton('PDF para nosotros · antecedente con la parte interna', r.pdfInterno, 'var(--ok)', 'En la versión de prueba no se crea el PDF interno. En la app instalada se guarda en tu Drive ▸ Liquidaciones.');
+    const ligas = document.createElement('div'); ligas.className = 'nota'; ligas.style.textAlign = 'center'; ligas.innerHTML = 'También quedan las hojas en la bitácora: <a target="_blank" rel="noopener">liquidación</a> · <a target="_blank" rel="noopener">interna</a>';
+    [[0, r.url], [1, r.urlInterno]].forEach(([i, u]) => { const a = ligas.querySelectorAll('a')[i]; if (/^https:[/]{2}/.test(u || '')) a.href = u; else a.removeAttribute('href'); });
+    $('q-res').appendChild(ligas);
+    $('b-qgen').classList.add('hidden'); aviso(r.mensaje);
+    ADMIN.desdeSiguiente[r.op] = ''; ADMIN.liquidaciones = [{op: r.op, desde: r.desde, hasta: r.hasta, saldo: r.tot.saldo, url: r.url, pdf: r.pdfUrl, pdfInterno: r.pdfInterno, estado: 'Pendiente de pago'}].concat(ADMIN.liquidaciones || []);
+    pintarHistorial(ADMIN.liquidaciones); }
+  catch (e) { $('e-liq').textContent = e; }
+  $('b-qgen').disabled = false; $('b-qgen').textContent = 'Generar liquidación (PDF y hoja)';
+};
+async function enviarAdmin(boton, error, fn, datos, alTerminar) {
+  $(error).textContent = ''; $(boton).disabled = true;
+  try { const r = await llamar(fn, CRED, datos); aviso(r.mensaje || 'Registrado.'); if (alTerminar) alTerminar(r); }
+  catch (e) { $(error).textContent = e; }
+  $(boton).disabled = false;
+}
+$('b-man').onclick = () => enviarAdmin('b-man', 'e-man', 'registrarManiobra', {fecha: $('m-fecha').value, monto: $('m-monto').value, operador: $('m-op').value, viaje: $('m-viaje').value,
+  concepto: $('m-concepto').value, quien: valSeg('m-quien'), factura: valSeg('m-fact'), archivos: LISTAS.m}, () => { limpiar('m', 'm-lista'); $('m-monto').value = ''; $('m-concepto').value = ''; });
+$('b-gasto').onclick = () => enviarAdmin('b-gasto', 'e-gasto', 'registrarGasto', {fecha: $('g-fecha').value, deducible: valSeg('g-ded') === 'Sí', categoria: $('g-cat').value,
+  concepto: $('g-concepto').value, total: $('g-total').value, pago: $('g-pago').value, litros: $('g-litros').value, operador: $('g-op').value, viaje: $('g-viaje').value,
+  notas: $('g-notas').value, archivos: LISTAS.g}, () => { limpiar('g', 'g-lista'); ['g-total', 'g-concepto', 'g-litros', 'g-notas'].forEach(i => $(i).value = ''); });
+$('b-ant').onclick = () => enviarAdmin('b-ant', 'e-ant', 'registrarAnticipo', {fecha: $('n-fecha').value, monto: $('n-monto').value, operador: $('n-op').value,
+  concepto: $('n-concepto').value, viaje: $('n-viaje').value, referencia: $('n-ref').value, rastreo: RASTREO, pago: $('n-pago').value, archivos: LISTAS.n},
+  () => { ['n-monto', 'n-ref'].forEach(i => $(i).value = ''); limpiar('n', 'n-lista'); $('n-leido').textContent = ''; RASTREO = ''; });
+$('x-arch').onchange = async e => {
+  $('e-fact').textContent = ''; $('x-form').classList.add('hidden');
+  try { FACT_ARCH = await tomar(e.target.files, 3); const xml = FACT_ARCH.find(a => /xml/.test(a.tipo) || /\.xml$/i.test(a.nombre)) || FACT_ARCH[0];
+    aviso('Leyendo factura…'); FACT = await llamar('leerFactura', CRED, xml);
+    seg('x-tipo', FACT.esIngreso ? 'ingreso' : 'gasto'); tipoFact();
+    $('x-fecha').value = FACT.fecha || hoy(); $('x-folio').value = FACT.folio || ''; $('x-contra').value = FACT.contraparte || ''; $('x-concepto').value = FACT.concepto || '';
+    $('x-sub').value = FACT.subtotal || ''; $('x-iva').value = FACT.iva || ''; $('x-ret').value = FACT.ret || ''; $('x-total').value = FACT.total || '';
+    $('x-cat').value = FACT.categoria; $('x-litros').value = FACT.litros || ''; $('x-pago').value = FACT.pago || '';
+    $('x-aviso').innerHTML = (FACT.repetida ? '<b style="color:var(--alerta)">Esta factura ya está registrada.</b> ' : '') + esc(FACT.aviso || 'Revisa los datos y guarda.') +
+      (FACT.destino ? '<br><b>Se guardará en:</b> ' + esc(FACT.destino) : '');
+    $('x-form').classList.remove('hidden'); }
+  catch (err) { $('e-fact').textContent = err; }
+};
+function tipoFact() { const g = valSeg('x-tipo') === 'gasto'; $('x-solo-gasto').classList.toggle('hidden', !g); $('x-l-contra').textContent = g ? 'Emisor (quién te facturó)' : 'Cliente'; }
+$('x-tipo').addEventListener('cambio', tipoFact);
+$('b-fact').onclick = async () => {
+  $('e-fact').textContent = ''; $('b-fact').disabled = true;
+  try { const d = {uuid: FACT.uuid, esIngreso: valSeg('x-tipo') === 'ingreso', fecha: $('x-fecha').value, folio: $('x-folio').value, contraparte: $('x-contra').value,
+      concepto: $('x-concepto').value, subtotal: $('x-sub').value, iva: $('x-iva').value, ret: $('x-ret').value, total: $('x-total').value, categoria: $('x-cat').value,
+      litros: $('x-litros').value, pago: $('x-pago').value, operador: $('x-op').value, viaje: $('x-viaje').value, rfc: FACT.rfc || '', isrRet: FACT.isrRet || 0, origen: FACT.origen || ''};
+    const r = await llamar('guardarFactura', CRED, d, FACT_ARCH); aviso(r.mensaje); $('x-form').classList.add('hidden'); $('x-arch').value = ''; }
+  catch (e) { $('e-fact').textContent = e; }
+  $('b-fact').disabled = false;
+};
+$('b-sat').onclick = async () => {
+  $('e-sat').textContent = ''; $('s-res').textContent = ''; const f = $('s-zip').files[0];
+  if (!f) return $('e-sat').textContent = 'Elige el ZIP que descargaste del SAT.';
+  $('b-sat').disabled = true; $('b-sat').textContent = 'Revisando…';
+  try { const r = await llamar('importarSAT', CRED, await leer(f));
+    $('s-res').innerHTML = `<b>${r.agregadas.length} agregadas</b> · ${r.repetidas} ya estaban · ${r.omitidas} omitidas (pagos, notas de crédito o ajenas)` +
+      (r.agregadas.length ? '<ul>' + r.agregadas.map(() => '<li></li>').join('') + '</ul>' : '');
+    $('s-res').querySelectorAll('li').forEach((li, i) => li.textContent = r.agregadas[i]); }
+  catch (e) { $('e-sat').textContent = e; }
+  $('b-sat').disabled = false; $('b-sat').textContent = 'Revisar y agregar faltantes';
+};
+</script>
+</body>
+</html>
