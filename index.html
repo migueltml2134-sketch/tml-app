@@ -158,7 +158,7 @@
       <h3>Cambiar contraseñas</h3>
       <form id="f-clave" autocomplete="off">
       <label for="k-quien">¿De quién?</label><select id="k-quien"></select>
-      <label for="k-actual">Tu contraseña (para confirmar que eres tú)</label><input id="k-actual" type="password" autocomplete="current-password">
+      <label for="k-actual">Tu contraseña: la misma con la que entraste (escríbela, para confirmar que eres tú)</label><input id="k-actual" type="password" autocomplete="off" data-lpignore="true" readonly onfocus="this.removeAttribute('readonly')">
       <label for="k-nueva">Contraseña nueva</label><input id="k-nueva" name="new-password" type="password" autocomplete="new-password" placeholder="Mínimo 8, con letras y números">
       <label for="k-nueva2">Repite la nueva</label><input id="k-nueva2" type="password" autocomplete="new-password">
       <button class="prim" id="b-clave-ok" type="submit">Guardar contraseña nueva</button>
