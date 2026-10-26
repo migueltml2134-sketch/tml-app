@@ -16,5 +16,12 @@ if '<title>' in h: h = re.sub(r'<title>.*?</title>', '<title>TML · Registro</ti
 else: h = h.replace('<head>', '<head>\n<title>TML · Registro</title>', 1)
 if 'name="viewport"' not in h: h = h.replace('<head>', '<head>\n<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">', 1)
 if 'charset' not in h[:500]: h = h.replace('<head>', '<head>\n<meta charset="utf-8">', 1)
+# versión: si alguien tiene la página vieja guardada en el navegador, al abrirla ve que hay una nueva y se recarga sola
+import time
+VER = time.strftime('%Y%m%d%H%M%S')
+aviso = ("<script>(function(){var V='" + VER + "';fetch('version.txt?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.text()})"
+         ".then(function(v){v=v.trim();if(v&&v!==V){location.replace(location.pathname+'?v='+v)}}).catch(function(){})})();</script>")
+h = h.replace('</head>', aviso + '\n</head>', 1)
+(B / 'publicar' / 'version.txt').write_text(VER, encoding='utf-8')
 (B / 'publicar' / 'index.html').write_text(h, encoding='utf-8')
 print('ok', len(h))
