@@ -136,7 +136,7 @@
   .liq-viaje .tipo{flex:none;font-size:11.5px;padding:2px 8px;border-radius:10px;background:#E6F0EE;color:#3B6B62} .liq-viaje .tipo.rep{background:#FDEBD3;color:#9A6418}
   .seccion-liq{font-size:12px;color:var(--gris);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin:16px 0 2px}
 </style>
-<script>(function(){var V='20261026145844';fetch('version.txt?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.text()}).then(function(v){v=v.trim();if(v&&v!==V){location.replace(location.pathname+'?v='+v)}}).catch(function(){})})();</script>
+<script>(function(){var V='20261026153118';fetch('version.txt?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.text()}).then(function(v){v=v.trim();if(v&&v!==V){location.replace(location.pathname+'?v='+v)}}).catch(function(){})})();</script>
 </head>
 <body>
 <header><div><h1 id="h-nombre">REGISTRO</h1><small id="h-sub">Inicia sesión</small></div><div><button class="mini hidden" id="b-cambiar">TML / Personal</button> <button class="mini hidden" id="b-miclave">Contraseñas</button> <button class="mini hidden" id="b-salir">Salir</button></div></header>
@@ -353,7 +353,9 @@
       <label>¿Quién la pagó?</label><div class="seg" id="m-quien"><button data-v="Empresa" class="on">Empresa</button><button data-v="Operador">Operador (se le reembolsa)</button></div>
       <label>¿Tiene factura?</label><div class="seg" id="m-fact"><button data-v="No" class="on">No</button><button data-v="Sí">Sí</button></div>
       <div class="archivos" id="m-lista"></div>
-      <button class="agregar" id="m-agregar" type="button">+ Agregar comprobante (opcional)</button><input type="file" id="m-arch" accept="image/*,application/pdf" multiple class="hidden">
+      <button class="agregar" id="m-agregar" type="button">+ Agregar comprobante (se leen solos el monto, la fecha y la referencia)</button><input type="file" id="m-arch" accept="image/*,application/pdf" multiple class="hidden">
+      <div class="nota" id="m-leido"></div>
+      <label for="m-ref">Número de referencia (de la transferencia)</label><input id="m-ref" inputmode="text" autocomplete="off" placeholder="Se llena solo al subir el comprobante">
       <button class="prim" id="b-man">Registrar maniobra</button><div class="error" id="e-man"></div>
     </div>
     <div id="t-gasto" class="card cont hidden">
@@ -738,6 +740,16 @@ $('n-arch').addEventListener('change', () => setTimeout(async () => {   // al el
     RASTREO = c.rastreo || '';
     $('n-leido').textContent = c.leidos ? '✓ Se leyeron ' + c.leidos + ' de 4 datos' + (c.beneficiario ? ' · beneficiario: ' + c.beneficiario : '') + '. Revísalos.' : '⚠ No se pudo leer: captura los datos a mano.'; }
   catch (e) { $('n-leido').textContent = '⚠ ' + e; }
+}, 300));
+let M_RASTREO = '', M_CUENTA = '';
+$('m-arch').addEventListener('change', () => setTimeout(async () => {   // comprobante de la maniobra: se lee solo, igual que el del anticipo
+  if (!LISTAS.m.length) return;
+  $('m-leido').textContent = 'Leyendo comprobante…';
+  try { const c = await llamar('leerComprobante', CRED, LISTAS.m[LISTAS.m.length - 1]);
+    if (c.monto) $('m-monto').value = c.monto; if (c.fecha) $('m-fecha').value = c.fecha; if (c.referencia) $('m-ref').value = c.referencia;
+    M_RASTREO = c.rastreo || ''; M_CUENTA = c.cuenta || '';
+    $('m-leido').textContent = c.leidos ? '✓ Se leyeron ' + c.leidos + ' de 4 datos' + (c.beneficiario ? ' · beneficiario: ' + c.beneficiario : '') + '. Revísalos.' : '⚠ No se pudo leer: captura los datos a mano.'; }
+  catch (e) { $('m-leido').textContent = '⚠ ' + e; }
 }, 300));
 const limpiar = (clave, contenedor) => { LISTAS[clave] = []; pintarArchivos(clave, contenedor); };
 
@@ -1174,7 +1186,8 @@ async function enviarAdmin(boton, error, fn, datos, alTerminar) {
   $(boton).disabled = false;
 }
 $('b-man').onclick = () => enviarAdmin('b-man', 'e-man', 'registrarManiobra', {fecha: $('m-fecha').value, monto: $('m-monto').value, operador: $('m-op').value, viaje: $('m-viaje').value,
-  concepto: $('m-concepto').value, quien: valSeg('m-quien'), factura: valSeg('m-fact'), archivos: LISTAS.m}, () => { limpiar('m', 'm-lista'); $('m-monto').value = ''; $('m-concepto').value = ''; });
+  concepto: $('m-concepto').value, quien: valSeg('m-quien'), factura: valSeg('m-fact'), archivos: LISTAS.m, referencia: $('m-ref').value.trim(), rastreo: M_RASTREO, cuenta: M_CUENTA},
+  () => { limpiar('m', 'm-lista'); ['m-monto', 'm-concepto', 'm-ref'].forEach(i => $(i).value = ''); $('m-leido').textContent = ''; M_RASTREO = ''; M_CUENTA = ''; });
 $('b-gasto').onclick = () => enviarAdmin('b-gasto', 'e-gasto', 'registrarGasto', {fecha: $('g-fecha').value, deducible: valSeg('g-ded') === 'Sí', categoria: $('g-cat').value,
   concepto: $('g-concepto').value, total: $('g-total').value, pago: $('g-pago').value, litros: $('g-litros').value, operador: $('g-op').value, viaje: $('g-viaje').value,
   notas: $('g-notas').value, archivos: LISTAS.g}, () => { limpiar('g', 'g-lista'); ['g-total', 'g-concepto', 'g-litros', 'g-notas'].forEach(i => $(i).value = ''); });
