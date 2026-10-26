@@ -138,16 +138,34 @@
 </style>
 </head>
 <body>
-<header><div><h1 id="h-nombre">REGISTRO</h1><small id="h-sub">Inicia sesión</small></div><div><button class="mini hidden" id="b-cambiar">TML / Personal</button> <button class="mini hidden" id="b-salir">Salir</button></div></header>
+<header><div><h1 id="h-nombre">REGISTRO</h1><small id="h-sub">Inicia sesión</small></div><div><button class="mini hidden" id="b-cambiar">TML / Personal</button> <button class="mini hidden" id="b-miclave">Contraseñas</button> <button class="mini hidden" id="b-salir">Salir</button></div></header>
 <main>
   <!-- ========== Inicio de sesión (operador o administración) ========== -->
   <section id="v-login">
     <div class="card">
       <h3>Inicia sesión</h3>
-      <label for="l-usuario">Usuario</label><input id="l-usuario" autocomplete="username" autocapitalize="words" placeholder="Tu nombre">
-      <label for="l-pin">Contraseña</label><input id="l-pin" type="password" autocomplete="current-password" placeholder="••••••">
-      <button class="prim" id="b-entrar">Entrar</button>
+      <form id="f-login" autocomplete="on">
+      <label for="l-usuario">Usuario</label><input id="l-usuario" name="username" autocomplete="username" autocapitalize="words" placeholder="Tu nombre">
+      <label for="l-pin">Contraseña</label><input id="l-pin" name="password" type="password" autocomplete="current-password" placeholder="••••••">
+      <button class="prim" id="b-entrar" type="submit">Entrar</button>
+      </form>
       <div class="error" id="e-login"></div>
+      <small style="color:var(--gris)">Tip: cuando el celular pregunte "¿Guardar contraseña?", dile que sí y ya no tendrás que escribirla.</small>
+    </div>
+  </section>
+  <section id="v-clave" class="hidden">
+    <div class="card">
+      <h3>Cambiar contraseñas</h3>
+      <form id="f-clave" autocomplete="off">
+      <label for="k-quien">¿De quién?</label><select id="k-quien"></select>
+      <label for="k-actual">Tu contraseña (para confirmar que eres tú)</label><input id="k-actual" type="password" autocomplete="current-password">
+      <label for="k-nueva">Contraseña nueva</label><input id="k-nueva" name="new-password" type="password" autocomplete="new-password" placeholder="Mínimo 8, con letras y números">
+      <label for="k-nueva2">Repite la nueva</label><input id="k-nueva2" type="password" autocomplete="new-password">
+      <button class="prim" id="b-clave-ok" type="submit">Guardar contraseña nueva</button>
+      <button id="b-clave-no" type="button">Regresar</button>
+      </form>
+      <div class="error" id="e-clave"></div>
+      <small style="color:var(--gris)">Que sea fácil de recordar para ti pero difícil de adivinar: por ejemplo una palabra, un número y un signo (Camion2026!). Sin el nombre de la persona ni 12345678. Solo administración puede cambiar contraseñas.</small>
     </div>
   </section>
 
@@ -425,7 +443,7 @@ const LISTAS = {f: [], m: [], g: [], n: [], j: [], s: [], i: []};   // archivos 
 const $ = id => document.getElementById(id);
 const esc = v => String(v == null ? '' : v).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
 const dinero = n => '$' + Number(n || 0).toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-const VISTAS = ['v-login', 'v-op', 'v-op-form', 'v-admin', 'v-elegir', 'v-personal'];
+const VISTAS = ['v-login', 'v-op', 'v-op-form', 'v-admin', 'v-elegir', 'v-personal', 'v-clave'];
 const ver = id => { VISTAS.forEach(v => $(v).classList.toggle('hidden', v !== id)); window.scrollTo(0, 0); };
 const aviso = t => { const a = $('aviso'); a.textContent = t; a.style.display = 'block'; clearTimeout(aviso.t); aviso.t = setTimeout(() => a.style.display = 'none', 3800); };
 const hoy = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
@@ -722,14 +740,25 @@ $('b-entrar').onclick = async () => {
   $('e-login').textContent = ''; $('b-entrar').disabled = true;
   try {
     CRED = {usuario: $('l-usuario').value.trim(), pin: $('l-pin').value.trim()};
-    const r = await llamar('entrar', CRED); CRED = {usuario: CRED.usuario, token: r.token}; $('l-pin').value = ''; $('b-salir').classList.remove('hidden');
+    const r = await llamar('entrar', CRED); CRED = {usuario: CRED.usuario, token: r.token}; $('l-pin').value = ''; $('b-salir').classList.remove('hidden'); $('b-miclave').classList.toggle('hidden', r.rol !== 'admin');
     document.body.classList.toggle('admin', r.rol === 'admin'); document.body.classList.toggle('op', r.rol !== 'admin');
     if (r.rol === 'admin') { pintarAdmin(r); if (r.personal) { $('b-cambiar').classList.remove('hidden'); $('b-cambiar').click(); } else ver('v-admin'); } else { pintarOp(r); ver('v-op'); }
   } catch (e) { $('e-login').textContent = e; CRED = null; }
   $('b-entrar').disabled = false;
 };
-$('l-pin').addEventListener('keydown', e => { if (e.key === 'Enter') $('b-entrar').click(); });
-$('b-salir').onclick = () => { if (CRED && CRED.token) llamar('salir', CRED).catch(() => {}); CRED = null; $('b-cambiar').classList.add('hidden'); document.body.classList.remove('admin', 'op'); $('l-pin').value = ''; $('h-nombre').textContent = 'REGISTRO'; $('h-sub').textContent = 'Inicia sesión'; $('b-salir').classList.add('hidden'); ver('v-login'); };
+$('f-login').addEventListener('submit', e => e.preventDefault());
+let VISTA_ANT = 'v-login';
+$('b-miclave').onclick = () => { const v = VISTAS.find(x => !$(x).classList.contains('hidden')); if (v && v !== 'v-clave') VISTA_ANT = v;
+  ['k-actual', 'k-nueva', 'k-nueva2'].forEach(i => $(i).value = ''); $('e-clave').textContent = ''; ver('v-clave');
+  llamar('listaUsuarios', CRED).then(l => opciones('k-quien', l)).catch(er => $('e-clave').textContent = er); };
+$('b-clave-no').onclick = () => ver(VISTA_ANT);
+$('f-clave').addEventListener('submit', async e => { e.preventDefault(); $('e-clave').textContent = '';
+  if ($('k-nueva').value !== $('k-nueva2').value) { $('e-clave').textContent = 'Las dos contraseñas nuevas no son iguales.'; return; }
+  $('b-clave-ok').disabled = true;
+  try { const r = await llamar('ponerClave', CRED, {usuario: $('k-quien').value, actual: $('k-actual').value, nueva: $('k-nueva').value}); if (r.token) CRED.token = r.token; ['k-actual', 'k-nueva', 'k-nueva2'].forEach(i => $(i).value = ''); aviso(r.mensaje); ver(VISTA_ANT); }
+  catch (er) { $('e-clave').textContent = er; }
+  $('b-clave-ok').disabled = false; });
+$('b-salir').onclick = () => { if (CRED && CRED.token) llamar('salir', CRED).catch(() => {}); CRED = null; $('b-miclave').classList.add('hidden'); $('b-cambiar').classList.add('hidden'); document.body.classList.remove('admin', 'op'); $('l-pin').value = ''; $('h-nombre').textContent = 'REGISTRO'; $('h-sub').textContent = 'Inicia sesión'; $('b-salir').classList.add('hidden'); ver('v-login'); };
 
 
 /* ---------- Personal (solo la administradora principal) ---------- */
