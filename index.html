@@ -136,7 +136,7 @@
   .liq-viaje .tipo{flex:none;font-size:11.5px;padding:2px 8px;border-radius:10px;background:#E6F0EE;color:#3B6B62} .liq-viaje .tipo.rep{background:#FDEBD3;color:#9A6418}
   .seccion-liq{font-size:12px;color:var(--gris);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin:16px 0 2px}
 </style>
-<script>(function(){var V='20261026153118';fetch('version.txt?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.text()}).then(function(v){v=v.trim();if(v&&v!==V){location.replace(location.pathname+'?v='+v)}}).catch(function(){})})();</script>
+<script>(function(){var V='20261027084914';fetch('version.txt?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.text()}).then(function(v){v=v.trim();if(v&&v!==V){location.replace(location.pathname+'?v='+v)}}).catch(function(){})})();</script>
 </head>
 <body>
 <header><div><h1 id="h-nombre">REGISTRO</h1><small id="h-sub">Inicia sesión</small></div><div><button class="mini hidden" id="b-cambiar">TML / Personal</button> <button class="mini hidden" id="b-miclave">Contraseñas</button> <button class="mini hidden" id="b-salir">Salir</button></div></header>
@@ -635,7 +635,7 @@ function pintarCobranza() {
         const e = document.createElement('div'); e.className = 'editor';
         e.innerHTML = '<div class="fila2"><div><label>Monto cobrado</label><input type="number" step="0.01" inputmode="decimal" data-c="monto"></div><div><label>Fecha</label><input type="date" data-c="fecha"></div></div><button class="prim" type="button">Guardar pago</button>';
         e.querySelector('[data-c="monto"]').value = x.pendiente; e.querySelector('[data-c="fecha"]').value = hoy();
-        e.querySelector('button').onclick = async () => { try { COB = await llamar('registrarCobro', CRED, {hoja: x.hoja, fila: x.fila, monto: e.querySelector('[data-c="monto"]').value, fecha: e.querySelector('[data-c="fecha"]').value}); aviso(COB.mensaje); pintarCobranza(); } catch (er) { aviso(er); } };
+        e.querySelector('button').onclick = async () => { try { COB = await llamarConfirmando('registrarCobro', {hoja: x.hoja, fila: x.fila, monto: e.querySelector('[data-c="monto"]').value, fecha: e.querySelector('[data-c="fecha"]').value}); aviso(COB.mensaje); pintarCobranza(); } catch (er) { aviso(er); } };
         d.appendChild(e); };
     }
     box.appendChild(d);
@@ -1079,7 +1079,7 @@ function agregarLiq(box, L) {
       <label>Referencia</label><input data-c="referencia" inputmode="numeric"><button class="prim" type="button">Agregar anticipo</button></div>`;
     f.querySelector('[data-c="fecha"]').value = $('q-hasta').value;
     f.querySelector('button').onclick = async () => { const d = {operador: L.op, concepto: 'Anticipo', pago: 'Transferencia', archivos: []}; f.querySelectorAll('[data-c]').forEach(i => d[i.dataset.c] = i.value);
-      try { const r = await llamar('registrarAnticipo', CRED, d); aviso(r.mensaje); $('b-qver').click(); } catch (er) { aviso(er); } };
+      try { const r = await llamarConfirmando('registrarAnticipo', d); aviso(r.mensaje); $('b-qver').click(); } catch (er) { aviso(er); } };
   };
   box.appendChild(z);
 }
@@ -1179,9 +1179,16 @@ $('b-qgen').onclick = async () => {
   catch (e) { $('e-liq').textContent = e; }
   $('b-qgen').disabled = false; $('b-qgen').textContent = 'Generar liquidación (PDF y hoja)';
 };
+/* Si el servidor avisa que puede estar repetido (lo pudo capturar el otro administrador), se pregunta antes de guardarlo de todas formas */
+async function llamarConfirmando(fn, datos) {
+  try { return await llamar(fn, CRED, datos); }
+  catch (e) { const t = String(e && e.message || e); if (/Posible repetido/.test(t) && confirm(t + String.fromCharCode(10, 10) + '¿Es otro distinto y quieres registrarlo de todas formas?'))
+      return await llamar(fn, CRED, Object.assign({}, datos, {forzar: true}));
+    throw e; }
+}
 async function enviarAdmin(boton, error, fn, datos, alTerminar) {
   $(error).textContent = ''; $(boton).disabled = true;
-  try { const r = await llamar(fn, CRED, datos); aviso(r.mensaje || 'Registrado.'); if (alTerminar) alTerminar(r); }
+  try { const r = await llamarConfirmando(fn, datos); aviso(r.mensaje || 'Registrado.'); if (alTerminar) alTerminar(r); }
   catch (e) { $(error).textContent = e; }
   $(boton).disabled = false;
 }
