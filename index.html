@@ -136,7 +136,7 @@
   .liq-viaje .tipo{flex:none;font-size:11.5px;padding:2px 8px;border-radius:10px;background:#E6F0EE;color:#3B6B62} .liq-viaje .tipo.rep{background:#FDEBD3;color:#9A6418}
   .seccion-liq{font-size:12px;color:var(--gris);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin:16px 0 2px}
 </style>
-<script>(function(){var V='20261027084914';fetch('version.txt?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.text()}).then(function(v){v=v.trim();if(v&&v!==V){location.replace(location.pathname+'?v='+v)}}).catch(function(){})})();</script>
+<script>(function(){var V='20261109171649';fetch('version.txt?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.text()}).then(function(v){v=v.trim();if(v&&v!==V){location.replace(location.pathname+'?v='+v)}}).catch(function(){})})();</script>
 </head>
 <body>
 <header><div><h1 id="h-nombre">REGISTRO</h1><small id="h-sub">Inicia sesión</small></div><div><button class="mini hidden" id="b-cambiar">TML / Personal</button> <button class="mini hidden" id="b-miclave">Contraseñas</button> <button class="mini hidden" id="b-salir">Salir</button></div></header>
@@ -911,7 +911,7 @@ function pintarAdmin(a) {
       ${p.foto ? `<button class="mini ver" type="button">Ver ${p.documento ? 'archivo' : 'foto del ticket'}</button><div class="visor-c"></div>` : '<span class="nota">Sin archivo</span>'}
       ${p.documento ? '<label>Comentario (si falta el folio escribe: folio 9000001234)</label><input class="c" maxlength="200">'
         : '<div class="fila2"><div><label>Monto que se reconoce</label><input type="number" step="0.01" class="m"></div><div><label>Comentario</label><input class="c" maxlength="200"></div></div>' +
-          '<label>¿Tiene comprobante?</label><select class="sc"><option value="">Sí, con comprobante (se le reembolsa)</option><option value="1">No · sale del 1% de su comisión</option></select>'}
+          '<label>¿Tiene comprobante?</label><select class="sc"><option value="">Sí, con comprobante (se le reembolsa)</option><option value="1">No · sale del 2% de su comisión</option></select>'}
       <div class="fila2"><button class="prim ok" style="margin-top:12px">Autorizar</button><button class="prim no" style="margin-top:12px;background:var(--alerta);color:#fff">Rechazar</button></div>`;
     c.querySelector('.t').textContent = (p.documento ? 'Documento' : p.tipo) + ' · ' + p.op;
     c.querySelector('.q').textContent = p.fecha + (p.viaje ? ' · viaje ' + p.viaje : '') + ' · ' + p.concepto + (p.notas ? ' · "' + p.notas + '"' : '');
@@ -1087,7 +1087,7 @@ function pintarLiq(L, generada) {
   const box = $('q-res'); box.innerHTML = ''; const editar = !generada; const t = L.tot, Di = L.diesel || {}, I = L.interno;
   // Resumen: comisión, gastos y anticipos (diésel de más y descuento solo si aplican)
   const r = bloqueLiq('Resumen · ' + L.desde + ' al ' + L.hasta);
-  filaLiq(r, 'Comisión 13%', dinero(t.c13));
+  filaLiq(r, 'Comisión 14%', dinero(t.c13));
   if (t.sinComp) filaLiq(r, '(−) Gastos sin comprobante', '−' + dinero(t.sinComp));
   filaLiq(r, '(+) Gastos pagados por el operador', dinero(t.gastos));
   filaLiq(r, '(−) Anticipos', '−' + dinero(t.anticipos));
@@ -1101,14 +1101,14 @@ function pintarLiq(L, generada) {
   L.viajes.forEach((x, i) => { const d = document.createElement('div'); d.className = 'liq-viaje';
     d.innerHTML = '<div class="l1"><b></b><b></b></div><div class="l0"><span class="num"></span><span class="ruta"></span></div><div class="l2"><span></span><span></span></div>';
     const b = d.querySelectorAll('.l1 b'), s2 = d.querySelectorAll('.l2 span');
-    b[0].textContent = x.fecha + ' · ' + (x.cliente === 'ADO' ? 'ADO · ' : '') + x.folio; b[1].textContent = 'Comisión 13% ' + dinero((x.c12 || 0) + (x.c1 || 0));
+    b[0].textContent = x.fecha + ' · ' + (x.cliente === 'ADO' ? 'ADO · ' : '') + x.folio; b[1].textContent = 'Comisión 14% ' + dinero((x.c12 || 0) + (x.c1 || 0));
     d.querySelector('.num').textContent = x.n || i + 1;
     d.querySelector('.ruta').textContent = (x.origen || x.ruta || '') + (x.destino ? '  →  ' + x.destino : '');
     s2[0].textContent = 'Flete ' + dinero(x.flete) + (x.nrep ? ' + ' + x.nrep + (x.nrep === 1 ? ' reparto ' : ' repartos ') + dinero(x.repartos) : ''); s2[1].textContent = '';
     if (editar && x.ref) botonCorregir(d, L, x, 'viaje');
     v.appendChild(d); });
   if (!L.viajes.length) { const e = document.createElement('div'); e.className = 'liq-vacio'; e.textContent = 'Sin viajes en estas fechas'; v.appendChild(e); }
-  filaLiq(v, 'Total comisión 13%', dinero(t.c13));
+  filaLiq(v, 'Total comisión 14%', dinero(t.c13));
   box.appendChild(v);
   // 2. Diésel
   const g = bloqueLiq('2. Diésel del periodo');
@@ -1141,7 +1141,7 @@ function pintarLiq(L, generada) {
     const z = bloqueLiq('Administración - No operador', 'interno'), C = I.costos;
     filaLiq(z, 'Ingresos de los viajes (flete + repartos + maniobras cobradas)', dinero(I.ingresos));
     [['Diésel', C.diesel], ['Casetas usadas TAG/Pase (sin IVA)', C.tag], ['Casetas en efectivo (sin IVA)', C.casetas], ['Urea', C.urea], ['Maniobras pagadas', C.maniobrasNuestras],
-     ['Maniobra operador', C.maniobrasOperador], ['Comisión del operador (13%)', C.comision], ['Otros gastos del operador', C.otrosOperador]]
+     ['Maniobra operador', C.maniobrasOperador], ['Comisión del operador (14%)', C.comision], ['Otros gastos del operador', C.otrosOperador]]
       .forEach(x => filaLiq(z, '(−) ' + x[0], '−' + dinero(x[1]), 'sub'));
     totLiq(z, 'Utilidad del camión en este corte · ' + (Math.round(I.pct * 1000) / 10) + '%', dinero(I.utilidad), I.utilidad < 0);
     box.appendChild(z);
