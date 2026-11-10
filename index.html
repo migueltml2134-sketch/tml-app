@@ -136,7 +136,7 @@
   .liq-viaje .tipo{flex:none;font-size:11.5px;padding:2px 8px;border-radius:10px;background:#E6F0EE;color:#3B6B62} .liq-viaje .tipo.rep{background:#FDEBD3;color:#9A6418}
   .seccion-liq{font-size:12px;color:var(--gris);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin:16px 0 2px}
 </style>
-<script>(function(){var V='20261109173018';fetch('version.txt?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.text()}).then(function(v){v=v.trim();if(v&&v!==V){location.replace(location.pathname+'?v='+v)}}).catch(function(){})})();</script>
+<script>(function(){var V='20261109182709';fetch('version.txt?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.text()}).then(function(v){v=v.trim();if(v&&v!==V){location.replace(location.pathname+'?v='+v)}}).catch(function(){})})();</script>
 </head>
 <body>
 <header><div><h1 id="h-nombre">REGISTRO</h1><small id="h-sub">Inicia sesión</small></div><div><button class="mini hidden" id="b-cambiar">TML / Personal</button> <button class="mini hidden" id="b-miclave">Contraseñas</button> <button class="mini hidden" id="b-salir">Salir</button></div></header>
@@ -309,7 +309,7 @@
       <div class="archivos" id="j-lista"></div>
       <button class="agregar" id="j-agregar" type="button">+ Agregar carta porte o bitácora (opcional)</button><input type="file" id="j-arch" accept="application/pdf,image/*" class="hidden">
       <div class="nota" id="j-leido"></div>
-      <label>Cliente</label><div class="seg" id="j-cliente"><button data-v="Torrey - Imbera" class="on">Torrey - Imbera</button><button data-v="ADO">ADO</button><button data-v="Cash">Cash</button></div>
+      <label>Cliente</label><div class="seg" id="j-cliente"><button data-v="Torrey - Imbera" class="on">Torrey - Imbera</button><button data-v="ADO">ADO</button><button data-v="Cash">Cliente general</button></div>
       <div id="j-c-reco"><label>Servicio</label><div class="seg" id="j-servicio"><button data-v="normal" class="on">Flete normal</button><button data-v="reco">Recolección (60%)</button></div>
         <div id="j-c-monto" class="hidden"><label>El monto que escribo es</label><div class="seg" id="j-monto"><button data-v="100" class="on">Flete completo (100%)</button><button data-v="60">Ya es el 60%</button></div></div></div>
       <div id="j-solo-cash" class="hidden"><div class="fila2"><div><label for="j-cnombre">Cliente</label><input id="j-cnombre" placeholder="Nombre o Particular"></div>
@@ -929,7 +929,7 @@ function pintarAdmin(a) {
   if (!$('r-mes').value) $('r-mes').value = hoy().slice(0, 7);
   desdeLiq(); pintarHistorial(a.liquidaciones || []);
   opciones('g-op', ops, '— No es del camión —'); opciones('x-op', ops, '— No es del camión —');
-  viajesManiobra(); opciones('g-viaje', vj, '— Sin viaje —'); opciones('x-viaje', vj, '— Sin viaje —'); opciones('n-viaje', vj, '— Sin viaje —');
+  refrescarViajes();
   catsGasto(); opciones('x-cat', a.catsDed);
   ['g-fecha', 'n-fecha', 'm-fecha', 'j-fecha', 's-fecha'].forEach(i => $(i).value = $(i).value || hoy());
   if (REVISAR && $('p-' + REVISAR)) { const c = $('p-' + REVISAR); c.style.outline = '2px solid var(--acento)'; setTimeout(() => c.scrollIntoView({block: 'center'}), 50); }
@@ -981,6 +981,12 @@ async function verArchivo(url, caja, boton) {
     caja.appendChild(v); boton.textContent = 'Ocultar archivo';
   } catch (e) { aviso(e); boton.textContent = 'Ver archivo'; }
   boton.disabled = false;
+}
+/** Listas de viajes de Maniobra, Gasto, Factura y Anticipo (se vuelven a llenar al guardar un viaje, sin volver a entrar). */
+function refrescarViajes() {
+  const vj = ADMIN.viajes || [];
+  [['g-viaje', '— Sin viaje —'], ['x-viaje', '— Sin viaje —'], ['n-viaje', '— Sin viaje —']].forEach(([id, vacio]) => { const v = $(id).value; opciones(id, vj, vacio); if (v) $(id).value = v; });
+  const vm = $('m-viaje').value; viajesManiobra(); if (vm) $('m-viaje').value = vm;
 }
 /** Viajes de ese operador cuya fecha queda a 3 días o menos de la fecha de la maniobra. */
 function viajesManiobra() {
@@ -1188,7 +1194,7 @@ async function llamarConfirmando(fn, datos) {
 }
 async function enviarAdmin(boton, error, fn, datos, alTerminar) {
   $(error).textContent = ''; $(boton).disabled = true;
-  try { const r = await llamarConfirmando(fn, datos); aviso(r.mensaje || 'Registrado.'); if (alTerminar) alTerminar(r); }
+  try { const r = await llamarConfirmando(fn, datos); aviso(r.mensaje || 'Registrado.'); if (r && r.viajes && ADMIN) { ADMIN.viajes = r.viajes; refrescarViajes(); } if (alTerminar) alTerminar(r); }
   catch (e) { $(error).textContent = e; }
   $(boton).disabled = false;
 }
