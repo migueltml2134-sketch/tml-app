@@ -136,7 +136,7 @@
   .liq-viaje .tipo{flex:none;font-size:11.5px;padding:2px 8px;border-radius:10px;background:#E6F0EE;color:#3B6B62} .liq-viaje .tipo.rep{background:#FDEBD3;color:#9A6418}
   .seccion-liq{font-size:12px;color:var(--gris);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin:16px 0 2px}
 </style>
-<script>(function(){var V='20261109182709';fetch('version.txt?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.text()}).then(function(v){v=v.trim();if(v&&v!==V){location.replace(location.pathname+'?v='+v)}}).catch(function(){})})();</script>
+<script>(function(){var V='20261111204350';fetch('version.txt?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.text()}).then(function(v){v=v.trim();if(v&&v!==V){location.replace(location.pathname+'?v='+v)}}).catch(function(){})})();</script>
 </head>
 <body>
 <header><div><h1 id="h-nombre">REGISTRO</h1><small id="h-sub">Inicia sesión</small></div><div><button class="mini hidden" id="b-cambiar">TML / Personal</button> <button class="mini hidden" id="b-miclave">Contraseñas</button> <button class="mini hidden" id="b-salir">Salir</button></div></header>
@@ -1138,7 +1138,7 @@ function pintarLiq(L, generada) {
   listaLiq(o, L.otros, conCorregir('gasto', x => itemLiq(x.n + '. ' + x.concepto, x.fecha + ' · ' + x.tipo, dinero(x.monto))), t.otros, 'Total'); box.appendChild(o);
   const sc = bloqueLiq('5. Gastos sin comprobante (' + (L.sinComp || []).length + ')');
   listaLiq(sc, L.sinComp || [], conCorregir('sinComp', x => itemLiq(x.n + '. ' + x.concepto, x.fecha + (x.viaje ? ' · viaje ' + x.viaje : ''), dinero(x.monto))), t.sinComp || 0, 'Total');
-  filaLiq(sc, 'Dentro del 1%', dinero(t.c1)); filaLiq(sc, 'Saldo a favor', dinero(t.c1Queda != null ? t.c1Queda : t.c1), 'neto'); box.appendChild(sc);
+  filaLiq(sc, 'Dentro del 2%', dinero(t.c1)); filaLiq(sc, 'Saldo a favor', dinero(t.c1Queda != null ? t.c1Queda : t.c1), 'neto'); box.appendChild(sc);
   const a = bloqueLiq('6. Anticipos (' + L.anticipos.length + ')');
   listaLiq(a, L.anticipos, conCorregir('anticipo', x => itemLiq(x.n + '. ' + x.fecha, 'Ref. ' + (x.referencia || '—'), dinero(x.monto))), t.anticipos, 'Total'); box.appendChild(a);
   if (editar) agregarLiq(box, L);
